@@ -28,6 +28,7 @@ function initDatabase() {
       longitud REAL NOT NULL,
       area_hectareas REAL NOT NULL,
       tipo_suelo TEXT DEFAULT 'Franco',
+      clima_zona TEXT DEFAULT 'Templado',
       fuente_agua TEXT DEFAULT 'Temporal',
       cultivo_actual TEXT DEFAULT 'Sin cultivo',
       estado TEXT DEFAULT 'Activo',
@@ -75,99 +76,201 @@ function initDatabase() {
     );
   `);
 
-  // Check if we need to seed initial demo plots
+  // Reset or initialize seed data to match AgroMonitor Figma design
   const countStmt = db.prepare('SELECT COUNT(*) as count FROM terrenos');
   const result = countStmt.get();
 
   if (result.count === 0) {
-    console.log('🌱 Inicializando terrenos de muestra para agricultores...');
-    const insertStmt = db.prepare(`
-      INSERT INTO terrenos (
-        nombre, propietario, descripcion, ubicacion, latitud, longitud, 
-        area_hectareas, tipo_suelo, fuente_agua, cultivo_actual, estado, poligono_geojson
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    const demoTerrenos = [
-      {
-        nombre: 'Parcela La Esperanza - Valle Central',
-        propietario: 'Roberto Méndez (Agricultor principiante)',
-        descripcion: 'Terreno plano de llanura aluvial, recién adquirido para proyecto de transición agroecológica.',
-        ubicacion: 'Tlajomulco de Zúñiga, Jalisco',
-        latitud: 20.4735,
-        longitud: -103.4478,
-        area_hectareas: 8.5,
-        tipo_suelo: 'Franco arcilloso',
-        fuente_agua: 'Pozo profundo y temporal',
-        cultivo_actual: 'Maíz Blanco',
-        estado: 'En producción',
-        poligono: JSON.stringify([
-          [20.4755, -103.4500],
-          [20.4755, -103.4450],
-          [20.4715, -103.4450],
-          [20.4715, -103.4500]
-        ])
-      },
-      {
-        nombre: 'Rancho Las Palmas - Sector Norte',
-        propietario: 'María Elena Salazar',
-        descripcion: 'Ladera suave con buena exposición solar, ideal para granos y leguminosas.',
-        ubicacion: 'Culiacán, Sinaloa',
-        latitud: 24.8090,
-        longitud: -107.3940,
-        area_hectareas: 14.2,
-        tipo_suelo: 'Franco limoso',
-        fuente_agua: 'Canal de riego por gravedad',
-        cultivo_actual: 'Frijol Pinto',
-        estado: 'En preparación',
-        poligono: JSON.stringify([
-          [24.8120, -107.3970],
-          [24.8120, -107.3910],
-          [24.8060, -107.3910],
-          [24.8060, -107.3970]
-        ])
-      },
-      {
-        nombre: 'Huerto El Mezquite',
-        propietario: 'Carlos Gutiérrez',
-        descripcion: 'Microclima templado semiárido con suelo bien drenado.',
-        ubicacion: 'Celaya, Guanajuato (Bajío)',
-        latitud: 20.5280,
-        longitud: -100.8160,
-        area_hectareas: 5.0,
-        tipo_suelo: 'Franco arenoso',
-        fuente_agua: 'Riego por goteo tecnificado',
-        cultivo_actual: 'Tomate Saladette',
-        estado: 'En producción',
-        poligono: JSON.stringify([
-          [20.5310, -100.8190],
-          [20.5310, -100.8130],
-          [20.5250, -100.8130],
-          [20.5250, -100.8190]
-        ])
-      }
-    ];
-
-    for (const t of demoTerrenos) {
-      insertStmt.run(
-        t.nombre,
-        t.propietario,
-        t.descripcion,
-        t.ubicacion,
-        t.latitud,
-        t.longitud,
-        t.area_hectareas,
-        t.tipo_suelo,
-        t.fuente_agua,
-        t.cultivo_actual,
-        t.estado,
-        t.poligono
-      );
-    }
-    console.log('✅ 3 terrenos de prueba creados.');
+    console.log('🌱 Inicializando terrenos del diseño AgroMonitor (Figma)...');
+    seedFigmaTerrenos();
   }
+}
+
+function seedFigmaTerrenos() {
+  const insertStmt = db.prepare(`
+    INSERT INTO terrenos (
+      nombre, propietario, descripcion, ubicacion, latitud, longitud, 
+      area_hectareas, tipo_suelo, clima_zona, fuente_agua, cultivo_actual, estado, poligono_geojson
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  const demoTerrenos = [
+    {
+      nombre: 'Parcela El Roble',
+      propietario: 'Roberto Méndez (Agricultor)',
+      descripcion: 'Suelo fértil con buen drenaje, cerca de la zona lacustre de Texcoco.',
+      ubicacion: 'Texcoco, Edo. Méx.',
+      latitud: 19.5124,
+      longitud: -98.8828,
+      area_hectareas: 8.5,
+      tipo_suelo: 'Franco-arcillosa',
+      clima_zona: 'Templado',
+      fuente_agua: 'Pozo profundo y temporal',
+      cultivo_actual: 'Maíz Blanco',
+      estado: 'Activo',
+      poligono: JSON.stringify([
+        [19.5150, -98.8850],
+        [19.5150, -98.8800],
+        [19.5100, -98.8800],
+        [19.5100, -98.8850]
+      ]),
+      metrics: { temp: 24.3, hum: 31, ndvi: 0.68 }
+    },
+    {
+      nombre: 'Rancho Los Pinos',
+      propietario: 'María Elena Salazar',
+      descripcion: 'Llanura amplia con suelo arcilloso pesado.',
+      ubicacion: 'Zumpango, Edo. Méx.',
+      latitud: 19.7972,
+      longitud: -99.0986,
+      area_hectareas: 14.2,
+      tipo_suelo: 'Arcillosa',
+      clima_zona: 'Semiárido',
+      fuente_agua: 'Canal de riego por gravedad',
+      cultivo_actual: 'Frijol Pinto',
+      estado: 'Activo',
+      poligono: JSON.stringify([
+        [19.8000, -99.1020],
+        [19.8000, -99.0950],
+        [19.7940, -99.0950],
+        [19.7940, -99.1020]
+      ]),
+      metrics: { temp: 26.0, hum: 27, ndvi: 0.54 }
+    },
+    {
+      nombre: 'Huerta La Esperanza',
+      propietario: 'Carlos Gutiérrez',
+      descripcion: 'Valle templado al pie de la montaña, excelente para hortalizas y frutales.',
+      ubicacion: 'Atlixco, Puebla',
+      latitud: 18.9083,
+      longitud: -98.4322,
+      area_hectareas: 5.0,
+      tipo_suelo: 'Franco-arenosa',
+      clima_zona: 'Templado',
+      fuente_agua: 'Riego por goteo',
+      cultivo_actual: 'Tomate Saladette',
+      estado: 'Activo',
+      poligono: JSON.stringify([
+        [18.9110, -98.4350],
+        [18.9110, -98.4290],
+        [18.9050, -98.4290],
+        [18.9050, -98.4350]
+      ]),
+      metrics: { temp: 22.0, hum: 35, ndvi: 0.72 }
+    },
+    {
+      nombre: 'Terreno Norte',
+      propietario: 'Antonio Flores',
+      descripcion: 'Suelo limoso con topografía ligeramente ondulada.',
+      ubicacion: 'Tulancingo, Hidalgo',
+      latitud: 20.0833,
+      longitud: -98.3667,
+      area_hectareas: 10.0,
+      tipo_suelo: 'Limosa',
+      clima_zona: 'Semiárido',
+      fuente_agua: 'Temporal',
+      cultivo_actual: 'Cebada',
+      estado: 'Activo',
+      poligono: JSON.stringify([
+        [20.0860, -98.3700],
+        [20.0860, -98.3630],
+        [20.0800, -98.3630],
+        [20.0800, -98.3700]
+      ]),
+      metrics: { temp: 25.0, hum: 24, ndvi: 0.47 }
+    }
+  ];
+
+  const insertMetricStmt = db.prepare(`
+    INSERT INTO metricas_satelitales_cache (
+      terreno_id, latitud, longitud, temperatura_promedio, temperatura_max, 
+      temperatura_min, precipitacion_acumulada, humedad_relativa, humedad_suelo_smap, 
+      indice_vegetacion_ndvi, radiacion_solar, calidad_vegetacion, condicion_hidrica, 
+      fuente, datos_completos_json
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  for (const t of demoTerrenos) {
+    const res = insertStmt.run(
+      t.nombre,
+      t.propietario,
+      t.descripcion,
+      t.ubicacion,
+      t.latitud,
+      t.longitud,
+      t.area_hectareas,
+      t.tipo_suelo,
+      t.clima_zona,
+      t.fuente_agua,
+      t.cultivo_actual,
+      t.estado,
+      t.poligono
+    );
+
+    const tid = res.lastInsertRowid;
+    insertMetricStmt.run(
+      tid,
+      t.latitud,
+      t.longitud,
+      t.metrics.temp,
+      t.metrics.temp + 4.5,
+      t.metrics.temp - 5.5,
+      18.4,
+      48.0,
+      t.metrics.hum,
+      t.metrics.ndvi,
+      21.5,
+      'Favorable',
+      'Adecuada',
+      'NASA POWER API & SMAP',
+      JSON.stringify({
+        metadata: {
+          fuente: 'NASA POWER Climatology (T2M) & SMAP',
+          estado_fuente: 'NASA_LIVE',
+          coordenadas: { lat: t.latitud, lon: t.longitud },
+          elevacion_msnm: 2240,
+          mes_evaluado: 'NOV',
+          fecha_consulta: new Date().toISOString()
+        },
+        clima: {
+          temperatura_actual_promedio_c: t.metrics.temp,
+          temperatura_anual_promedio_c: t.metrics.temp - 1.2,
+          temperatura_mensual: {
+            OCT15: t.metrics.temp - 2.1,
+            OCT24: t.metrics.temp - 1.0,
+            NOV03: t.metrics.temp + 1.2,
+            NOV14: t.metrics.temp
+          },
+          precipitacion_mes_actual_mm: 18.4,
+          precipitacion_diaria_promedio_mm: 0.6,
+          precipitacion_anual_acumulada_mm: 620,
+          humedad_relativa_porcentaje: 48,
+          radiacion_solar_mj_m2_dia: 21.5
+        },
+        smap: {
+          mision: 'NASA SMAP (Soil Moisture Active Passive L3/L4)',
+          humedad_superficie_porcentaje: t.metrics.hum,
+          humedad_volumetrica_m3_m3: parseFloat((t.metrics.hum * 0.004).toFixed(3)),
+          humedad_zona_radicular_porcentaje: Math.round(t.metrics.hum * 0.95),
+          condicion_humedad: 'Adecuada',
+          recomendacion_riego: 'Humedad en rango óptimo para desarrollo radicular.',
+          nivel_alerta: 'normal'
+        },
+        modis: {
+          sensor: 'NASA MODIS (Terra/Aqua MOD13Q1 250m NDVI)',
+          ndvi_actual: t.metrics.ndvi,
+          clasificacion_vigor: 'Vigor vegetal óptimo y activo',
+          color_hex: '#2BB3A3',
+          interpretacion_agronomica: 'Canopia vegetal activa, adecuada fotosíntesis y cobertura foliar.',
+          evi_indice_mejorado: parseFloat((t.metrics.ndvi * 0.88).toFixed(2))
+        }
+      })
+    );
+  }
+  console.log('✅ 4 terrenos del diseño AgroMonitor inicializados.');
 }
 
 initDatabase();
 
+db.seedFigmaTerrenos = seedFigmaTerrenos;
 module.exports = db;

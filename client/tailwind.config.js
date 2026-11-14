@@ -7,31 +7,24 @@ export default {
   theme: {
     extend: {
       colors: {
-        agro: {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          200: '#bbf7d0',
-          300: '#86efac',
-          400: '#4ade80',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',
-          800: '#166534',
-          900: '#14532d',
-          950: '#052e16',
-        },
-        earth: {
-          50: '#fdf8f6',
-          100: '#f2e8e5',
-          200: '#eaddd7',
-          300: '#e0cec7',
-          400: '#d2bab0',
-          500: '#bfa094',
-          600: '#a18072',
-          700: '#977669',
-          800: '#846358',
-          900: '#43302b',
+        brand: {
+          primary: '#0B3D91',       // NASA Deep Blue
+          primaryHover: '#082d6b',
+          secondary: '#4FA3E0',     // Sky / Water Blue
+          accent: '#2BB3A3',        // Turquoise / Teal
+          bg: '#F2F7FB',            // Light cool grayish blue
+          text: '#0F1F33',          // Dark navy text
+          surface: '#FFFFFF',
+          muted: '#607289',
+          border: '#E1E8F0',
+          pill: '#EBF4FC',
+          pillText: '#0B3D91',
+          pillMuted: '#F0F4F8',
+          pillMutedText: '#4A5B73'
         }
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif']
       }
     },
   },

@@ -76,6 +76,7 @@ router.post('/', async (req, res) => {
       longitud,
       area_hectareas,
       tipo_suelo = 'Franco',
+      clima_zona = 'Templado',
       fuente_agua = 'Temporal',
       cultivo_actual = 'Sin cultivo',
       estado = 'Activo',
@@ -94,8 +95,8 @@ router.post('/', async (req, res) => {
     const stmt = db.prepare(`
       INSERT INTO terrenos (
         nombre, propietario, descripcion, ubicacion, latitud, longitud,
-        area_hectareas, tipo_suelo, fuente_agua, cultivo_actual, estado, poligono_geojson
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        area_hectareas, tipo_suelo, clima_zona, fuente_agua, cultivo_actual, estado, poligono_geojson
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const result = stmt.run(
@@ -107,6 +108,7 @@ router.post('/', async (req, res) => {
       parseFloat(longitud),
       parseFloat(area_hectareas),
       tipo_suelo,
+      clima_zona,
       fuente_agua,
       cultivo_actual,
       estado,
@@ -150,6 +152,7 @@ router.put('/:id', (req, res) => {
       longitud,
       area_hectareas,
       tipo_suelo,
+      clima_zona,
       fuente_agua,
       cultivo_actual,
       estado,
@@ -177,6 +180,7 @@ router.put('/:id', (req, res) => {
         longitud = ?,
         area_hectareas = ?,
         tipo_suelo = ?,
+        clima_zona = ?,
         fuente_agua = ?,
         cultivo_actual = ?,
         estado = ?,
@@ -194,6 +198,7 @@ router.put('/:id', (req, res) => {
       longitud !== undefined ? parseFloat(longitud) : existing.longitud,
       area_hectareas !== undefined ? parseFloat(area_hectareas) : existing.area_hectareas,
       tipo_suelo || existing.tipo_suelo,
+      clima_zona || existing.clima_zona || 'Templado',
       fuente_agua || existing.fuente_agua,
       cultivo_actual || existing.cultivo_actual,
       estado || existing.estado,

@@ -51,7 +51,7 @@ if (fs.existsSync(clientDistPath)) {
 // Iniciar servidor
 app.listen(PORT, () => {
   console.log(`\n======================================================`);
-  console.log(`🌾 Plataforma Agrícola AgroAsist lista`);
+  console.log(`🌾 Plataforma Agrícola AgroMonitor lista`);
   console.log(`🌐 Web App & API: http://localhost:${PORT}`);
   console.log(`📊 Health Check: http://localhost:${PORT}/api/health`);
   console.log(`🛰️  NASA POWER, SMAP & MODIS endpoints activos`);
