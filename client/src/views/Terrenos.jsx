@@ -10,7 +10,7 @@ export function ParcelCard({ p, go, i }) {
     <button onClick={() => go('detail', p.id)} style={{ animationDelay: `${i * 50}ms` }}
       className="card group fade-in overflow-hidden text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-18px_rgba(11,61,145,.4)]">
       <div className="relative aspect-[16/9] overflow-hidden">
-        <div className="h-full w-full transition-transform duration-700 group-hover:scale-110"><MapView seed={p.seed} pin={p.pin} poly={p.poly} label={p.name} slice /></div>
+        <div className="h-full w-full transition-transform duration-700 group-hover:scale-110"><MapView lat={p.lat} lng={p.lng} seed={p.seed} pin={p.pin} poly={p.poly} label={p.name} slice satellite /></div>
         <div className="absolute left-3 top-3"><StatusBadge status={st} small /></div>
         <div className="absolute bottom-3 right-3 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-bold text-primary shadow backdrop-blur">{fmt(p.area)} ha</div>
       </div>

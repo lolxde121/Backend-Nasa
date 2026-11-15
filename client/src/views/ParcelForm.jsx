@@ -25,17 +25,60 @@ export function ParcelForm({ initial, onSave, onCancel }) {
   const set = (k, v) => setF(s => ({ ...s, [k]: v }));
   const place = PLACES.find(x => x.n === f.place) || PLACES[0];
 
-  const pick = (x, y) => {
-    if (mode === 'pin') { setPin({ x, y }); const ll = pxToLL(center, x, y); setLatS(ll.lat.toFixed(4)); setLngS(ll.lng.toFixed(4)); }
-    else { const np = [...pts, { x: Math.round(x), y: Math.round(y) }]; setPts(np); if (np.length >= 3) set('area', areaHa(np).toFixed(1)); }
+  const pick = (x, y, geo) => {
+    if (mode === 'pin') {
+      if (geo && typeof geo.lat === 'number' && typeof geo.lng === 'number') {
+        setLatS(geo.lat.toFixed(4));
+        setLngS(geo.lng.toFixed(4));
+        setCenter({ lat: geo.lat, lng: geo.lng });
+      } else {
+        setPin({ x, y });
+        const ll = pxToLL(center, x, y);
+        setLatS(ll.lat.toFixed(4));
+        setLngS(ll.lng.toFixed(4));
+      }
+    } else {
+      if (geo && typeof geo.lat === 'number' && typeof geo.lng === 'number') {
+        const np = [...pts, { lat: geo.lat, lng: geo.lng, x: Math.round(x || 300), y: Math.round(y || 180) }];
+        setPts(np);
+        if (np.length >= 3) {
+          const rad = Math.PI / 180;
+          const lat0 = np[0].lat * rad;
+          let s = 0;
+          for (let i = 0; i < np.length; i++) {
+            const a = np[i], b = np[(i + 1) % np.length];
+            const ax = a.lng * rad * 6378137 * Math.cos(lat0);
+            const ay = a.lat * rad * 6378137;
+            const bx = b.lng * rad * 6378137 * Math.cos(lat0);
+            const by = b.lat * rad * 6378137;
+            s += ax * by - bx * ay;
+          }
+          const ha = Math.abs(s / 2) / 10000;
+          set('area', (ha > 0.05 ? ha : areaHa(np)).toFixed(1));
+        }
+      } else {
+        const np = [...pts, { x: Math.round(x), y: Math.round(y) }];
+        setPts(np);
+        if (np.length >= 3) set('area', areaHa(np).toFixed(1));
+      }
+    }
   };
   const choosePlace = (pl) => {
-    set('place', pl.n); setCenter({ lat: pl.lat, lng: pl.lng }); setPin({ x: 300, y: 180 }); setPts([]);
-    setLatS(pl.lat.toFixed(4)); setLngS(pl.lng.toFixed(4)); setSug(false);
+    set('place', pl.n);
+    setCenter({ lat: pl.lat, lng: pl.lng });
+    setPin({ x: 300, y: 180 });
+    setPts([]);
+    setLatS(pl.lat.toFixed(4));
+    setLngS(pl.lng.toFixed(4));
+    setSug(false);
   };
   const onLL = (la, ln) => {
     const a = parseFloat(la), b = parseFloat(ln);
-    if (!isNaN(a) && !isNaN(b)) { const p = llToPx(center, a, b); setPin({ x: clamp(p.x, 20, 580), y: clamp(p.y, 20, 340) }); }
+    if (!isNaN(a) && !isNaN(b)) {
+      setCenter({ lat: a, lng: b });
+      const p = llToPx({ lat: a, lng: b }, a, b);
+      setPin({ x: clamp(p.x, 20, 580), y: clamp(p.y, 20, 340) });
+    }
   };
   const handleUseMyLocation = () => {
     if (typeof navigator !== 'undefined' && navigator.geolocation) {
@@ -131,7 +174,17 @@ export function ParcelForm({ initial, onSave, onCancel }) {
               </div>
             </div>
             <div className="relative aspect-[5/3] overflow-hidden rounded-2xl border border-slate-200 shadow-inner">
-              <MapView seed={place.lat * 10 | 0} pin={pin} satellite={sat} draft={pts} poly={initial?.poly} onPick={pick} label={f.name.trim() || 'Ubicación del terreno'} />
+              <MapView
+                lat={parseFloat(latS) || center.lat}
+                lng={parseFloat(lngS) || center.lng}
+                seed={place.lat * 10 | 0}
+                pin={pin}
+                satellite={sat}
+                draft={pts}
+                poly={initial?.poly}
+                onPick={pick}
+                label={f.name.trim() || 'Ubicación del terreno'}
+              />
               <button type="button" onClick={handleUseMyLocation} className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-primary shadow-lg transition-all hover:scale-105"><Icon n="cross" s={14} />Usar mi ubicación</button>
               <div className="pointer-events-none absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-slate-600 shadow backdrop-blur">{mode === 'pin' ? 'Haz clic para mover el pin' : `Puntos: ${pts.length}${pts.length >= 3 ? ` · ${fmt(areaHa(pts))} ha` : ' (mínimo 3)'}`}</div>
             </div>
