@@ -1,9 +1,20 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Icon } from '../components/Icon';
 import { MapView } from '../components/MapView';
 import { Btn, ChipGroup, L, PageTitle } from '../components/ui';
 import { PLACES, SOILS } from '../data/parcels';
 import { fmt } from '../lib/utils';
+
+function formatAddress(data) {
+  if (!data || !data.address) return data?.name || data?.display_name || '';
+  const a = data.address;
+  const local = a.village || a.town || a.city || a.municipality || a.county || a.suburb || a.quarter || data.name || '';
+  const municipality = (a.county && a.county !== local) ? a.county : (a.municipality && a.municipality !== local ? a.municipality : '');
+  const state = a.state || '';
+  const parts = [local, municipality, state].filter(Boolean);
+  const uniqueParts = parts.filter((item, index) => parts.indexOf(item) === index);
+  return uniqueParts.join(', ') || data.display_name?.split(',').slice(0, 3).join(', ') || '';
+}
 
 export function ParcelForm({ initial, onSave, onCancel }) {
   const edit = !!initial;
@@ -22,8 +33,11 @@ export function ParcelForm({ initial, onSave, onCancel }) {
   const [err, setErr] = useState({});
   const [geoQuery, setGeoQuery] = useState(initial?.place || startPlace.n);
   const [geoLoading, setGeoLoading] = useState(false);
+  const [reverseLoading, setReverseLoading] = useState(false);
   const [geoResults, setGeoResults] = useState([]);
   const [showSearch, setShowSearch] = useState(true);
+
+  const reverseTimeoutRef = useRef(null);
 
   const set = (k, v) => setF(s => ({ ...s, [k]: v }));
   const place = PLACES.find(x => x.n === f.place) || {
@@ -34,7 +48,32 @@ export function ParcelForm({ initial, onSave, onCancel }) {
     t: 21
   };
 
-  // Búsqueda geográfica real con OpenStreetMap Nominatim
+  // Reverse geocoding: al tocar o arrastrar el icono, actualizar el buscador con la localidad real
+  const reverseGeocode = (latitude, longitude) => {
+    if (reverseTimeoutRef.current) {
+      clearTimeout(reverseTimeoutRef.current);
+    }
+    setReverseLoading(true);
+    reverseTimeoutRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=14&addressdetails=1`);
+        if (res.ok) {
+          const data = await res.json();
+          const locality = formatAddress(data);
+          if (locality) {
+            setGeoQuery(locality);
+            set('place', locality);
+          }
+        }
+      } catch (err) {
+        console.warn('Reverse geocoding no disponible:', err);
+      } finally {
+        setReverseLoading(false);
+      }
+    }, 450); // 450ms debounce
+  };
+
+  // Búsqueda geográfica directa con OpenStreetMap Nominatim
   const handleSearchLocation = async (e) => {
     if (e) e.preventDefault();
     const query = (geoQuery || '').trim();
@@ -84,9 +123,13 @@ export function ParcelForm({ initial, onSave, onCancel }) {
   // Selección directa tocando en el mapa o arrastrando el icono de ubicación
   const pick = (x, y, geo) => {
     if (geo && typeof geo.lat === 'number' && typeof geo.lng === 'number') {
-      setLatS(geo.lat.toFixed(4));
-      setLngS(geo.lng.toFixed(4));
+      const formattedLat = geo.lat.toFixed(4);
+      const formattedLng = geo.lng.toFixed(4);
+      setLatS(formattedLat);
+      setLngS(formattedLng);
       setCenter({ lat: geo.lat, lng: geo.lng });
+      // Actualizar automáticamente el buscador con la localidad detectada
+      reverseGeocode(geo.lat, geo.lng);
     }
   };
 
@@ -94,6 +137,7 @@ export function ParcelForm({ initial, onSave, onCancel }) {
     const a = parseFloat(la), b = parseFloat(ln);
     if (!isNaN(a) && !isNaN(b)) {
       setCenter({ lat: a, lng: b });
+      reverseGeocode(a, b);
     }
   };
 
@@ -106,6 +150,7 @@ export function ParcelForm({ initial, onSave, onCancel }) {
           setLatS(String(la));
           setLngS(String(ln));
           setCenter({ lat: la, lng: ln });
+          reverseGeocode(la, ln);
         },
         () => {
           setLatS(center.lat.toFixed(4));
@@ -143,7 +188,7 @@ export function ParcelForm({ initial, onSave, onCancel }) {
       lng: parseFloat(lngS),
       clima: place.clima || 'Templado',
       center,
-      poly: null, // Polígonos retirados: solo ubicación por icono
+      poly: null,
     });
   };
 
@@ -244,11 +289,11 @@ export function ParcelForm({ initial, onSave, onCancel }) {
               </p>
             </div>
 
-            {/* Buscador de municipio/ejido */}
+            {/* Buscador de municipio/ejido con sincronización bidireccional */}
             <div className="mb-4">
               <div className="mb-1.5 flex items-center justify-between">
                 <label htmlFor="f-place" className="block text-sm font-bold text-slate-800">
-                  Buscar municipio o ejido (opcional)
+                  Municipio, ejido o localidad
                 </label>
                 <button
                   type="button"
@@ -282,7 +327,12 @@ export function ParcelForm({ initial, onSave, onCancel }) {
                           }
                         }}
                       />
-                      {geoQuery && (
+                      {reverseLoading && (
+                        <span className="absolute right-10 top-1/2 -translate-y-1/2 text-xs font-bold text-primary animate-pulse bg-sky/10 px-2 py-0.5 rounded-md">
+                          Localizando…
+                        </span>
+                      )}
+                      {geoQuery && !reverseLoading && (
                         <button
                           type="button"
                           onClick={() => { setGeoQuery(''); setGeoResults([]); setSug(false); }}
@@ -402,7 +452,7 @@ export function ParcelForm({ initial, onSave, onCancel }) {
 
             <div className="mt-4 flex items-start gap-2.5 rounded-2xl bg-sky/10 p-3.5 text-sm text-primary font-medium">
               <Icon n="globe" s={18} cls="mt-0.5 shrink-0" />
-              <span>Al guardar, consultaremos automáticamente NASA POWER y SMAP para esta ubicación geográfica y se generarán las recomendaciones de cultivo.</span>
+              <span>Al tocar el mapa o mover el pin, se detecta automáticamente la localidad en el buscador y se consultarán los datos satelitales NASA POWER y SMAP.</span>
             </div>
           </div>
 
