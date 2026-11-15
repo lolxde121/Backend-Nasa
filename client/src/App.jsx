@@ -263,7 +263,7 @@ export default function App() {
         <main ref={mainRef} className="flex-1 overflow-y-auto px-4 py-6 pb-24 md:px-8 md:pb-10">
           <div className="mx-auto max-w-[1280px]" key={view.name + (view.id || '')}>
             {view.name === 'inicio' && (
-              <Dashboard parcels={parcels} go={go} alerts={notifs} />
+              <Dashboard parcels={parcels} go={go} alerts={notifs} segs={segs} />
             )}
             {view.name === 'terrenos' && (
               <Terrenos parcels={parcels} go={go} query={query} setQuery={setQuery} />

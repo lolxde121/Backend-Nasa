@@ -89,12 +89,16 @@ export function MapView({
     if (onPick) {
       map.on('click', (e) => {
         const { lat: clickLat, lng: clickLng } = e.latlng;
+        // Si el marcador existe y estamos seleccionando ubicación, moverlo de inmediato
+        if (markerRef.current) {
+          markerRef.current.setLatLng([clickLat, clickLng]);
+        }
         // Calcular coordenadas x, y relativas de referencia
         const container = mapContainerRef.current;
         const rect = container ? container.getBoundingClientRect() : { width: 600, height: 360 };
         const point = map.latLngToContainerPoint(e.latlng);
-        const x = (point.x / rect.width) * 600;
-        const y = (point.y / rect.height) * 360;
+        const x = (point.x / (rect.width || 600)) * 600;
+        const y = (point.y / (rect.height || 360)) * 360;
 
         onPick(x, y, { lat: clickLat, lng: clickLng });
       });
@@ -150,32 +154,59 @@ export function MapView({
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    // Crear icono personalizado moderno para Lum
+    const isDraggable = !slice && typeof onPick === 'function';
+
+    // Crear icono de ubicación reconocible y destacado para el usuario
     const customPinIcon = L.divIcon({
       className: 'custom-leaflet-pin',
       html: `
-        <div style="position: relative; display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%); pointer-events: none;">
-          <div style="position: absolute; bottom: 2px; width: 34px; height: 34px; border-radius: 9999px; background: rgba(11, 61, 145, 0.4); animation: ping2 2s ease-out infinite;"></div>
-          <div style="width: 28px; height: 28px; border-radius: 9999px; background: #0B3D91; border: 3px solid #ffffff; box-shadow: 0 4px 12px rgba(11,61,145,0.45); display: flex; align-items: center; justify-content: center; color: white;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-              <circle cx="12" cy="10" r="3"/>
+        <div style="position: relative; display: flex; flex-direction: column; align-items: center; cursor: ${isDraggable ? 'grab' : 'default'};">
+          <!-- Pulso de radar en la base del terreno -->
+          <div style="position: absolute; bottom: 0; left: 50%; transform: translate(-50%, 50%); width: 34px; height: 34px; border-radius: 9999px; background: rgba(225, 29, 72, 0.4); pointer-events: none; animation: ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+          <!-- Icono de ubicación (Pin de mapa clásico con diseño moderno) -->
+          <div style="filter: drop-shadow(0 6px 12px rgba(0,0,0,0.38)); transition: transform 0.15s ease;">
+            <svg width="38" height="48" viewBox="0 0 384 512" fill="none">
+              <path d="M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67-9.535 13.774-29.93 13.773-39.464 0z" fill="#E11D48"/>
+              <path d="M192 72c-66.274 0-120 53.726-120 120s53.726 120 120 120 120-53.726 120-120-53.726-120-120-120z" fill="#FFFFFF"/>
+              <circle cx="192" cy="192" r="70" fill="#0B3D91"/>
+              <circle cx="192" cy="192" r="30" fill="#FFFFFF"/>
             </svg>
           </div>
-          <div style="width: 2px; height: 6px; background: #0B3D91;"></div>
-          ${label ? `<div style="background: rgba(15,31,51,0.92); color: white; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; white-space: nowrap; margin-top: 2px; box-shadow: 0 2px 6px rgba(0,0,0,0.35); font-family: 'Plus Jakarta Sans', sans-serif;">${label}</div>` : ''}
+          <!-- Etiqueta informativa de la ubicación -->
+          ${label ? `<div style="background: rgba(15,23,42,0.92); color: white; padding: 3px 9px; border-radius: 9999px; font-size: 11px; font-weight: 700; white-space: nowrap; margin-top: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.25); font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">${label}</div>` : ''}
+          ${isDraggable ? `<div style="background: #0B3D91; color: white; padding: 2px 8px; border-radius: 9999px; font-size: 10px; font-weight: 700; white-space: nowrap; margin-top: 2px; box-shadow: 0 2px 6px rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.35);">📍 Arrastra o toca</div>` : ''}
         </div>
       `,
-      iconSize: [0, 0],
-      iconAnchor: [0, 0]
+      iconSize: [38, 48],
+      iconAnchor: [19, 48]
     });
 
     if (showPin) {
       if (!markerRef.current) {
-        markerRef.current = L.marker([currentLat, currentLng], { icon: customPinIcon }).addTo(map);
+        const marker = L.marker([currentLat, currentLng], {
+          icon: customPinIcon,
+          draggable: isDraggable
+        }).addTo(map);
+
+        if (isDraggable) {
+          marker.on('dragend', (e) => {
+            const newLL = e.target.getLatLng();
+            const container = mapContainerRef.current;
+            const rect = container ? container.getBoundingClientRect() : { width: 600, height: 360 };
+            const point = map.latLngToContainerPoint(newLL);
+            const x = (point.x / (rect.width || 600)) * 600;
+            const y = (point.y / (rect.height || 360)) * 360;
+            if (onPick) onPick(x, y, { lat: newLL.lat, lng: newLL.lng });
+          });
+        }
+        markerRef.current = marker;
       } else {
         markerRef.current.setLatLng([currentLat, currentLng]);
         markerRef.current.setIcon(customPinIcon);
+        if (markerRef.current.dragging) {
+          if (isDraggable) markerRef.current.dragging.enable();
+          else markerRef.current.dragging.disable();
+        }
       }
     } else if (markerRef.current) {
       map.removeLayer(markerRef.current);
@@ -187,7 +218,7 @@ export function MapView({
     } else {
       map.setView([currentLat, currentLng], 13);
     }
-  }, [currentLat, currentLng, showPin, label, slice]);
+  }, [currentLat, currentLng, showPin, label, slice, onPick]);
 
   // Dibujar polígono guardado o polígono del terreno
   useEffect(() => {

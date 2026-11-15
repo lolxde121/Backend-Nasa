@@ -149,26 +149,35 @@ export function ParcelForm({ initial, onSave, onCancel }) {
 
         <div className="flex flex-col gap-5">
           <div className="card p-5">
-            <h2 className="font-display text-base font-semibold">Ubicación del terreno</h2>
-            <p className="mb-4 text-xs text-slate-500">Busca un lugar, haz clic en el mapa para colocar el pin o dibuja el límite con varios puntos.</p>
+            <div className="mb-3">
+              <h2 className="font-display text-base font-semibold flex items-center gap-2 text-ink">
+                <span className="grid h-7 w-7 place-items-center rounded-lg bg-rose-100 text-rose-600">
+                  <Icon n="pin" s={16} />
+                </span>
+                Selección de ubicación del terreno
+              </h2>
+              <p className="mt-1 text-xs text-slate-500">
+                Toca cualquier punto del mapa satelital o arrastra el icono de ubicación rojo para fijar las coordenadas de tu parcela.
+              </p>
+            </div>
             <div className="relative mb-3">
-              <label htmlFor="f-place" className="mb-1.5 block text-xs font-bold text-slate-700">Buscar dirección o lugar</label>
+              <label htmlFor="f-place" className="mb-1.5 block text-xs font-bold text-slate-700">Buscar municipio, ejido o dirección</label>
               <Icon n="search" s={15} cls="pointer-events-none absolute left-3 top-[2.15rem] text-slate-400" />
               <input id="f-place" className="field !pl-9" value={f.place} autoComplete="off" onFocus={() => setSug(true)} onChange={e => { set('place', e.target.value); setSug(true); }} />
               {sug && sugs.length > 0 && <>
                 <div className="fixed inset-0 z-10" onClick={() => setSug(false)} />
                 <div className="pop absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-slate-100 bg-white shadow-xl">
-                  {sugs.map(x => <button type="button" key={x.n} onClick={() => choosePlace(x)} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-sky/10"><Icon n="pin" s={14} cls="text-sky" />{x.n}</button>)}
+                  {sugs.map(x => <button type="button" key={x.n} onClick={() => choosePlace(x)} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-sky/10"><Icon n="pin" s={14} cls="text-rose-600" />{x.n}</button>)}
                 </div>
               </>}
             </div>
             <div className="mb-2 flex flex-wrap items-center gap-2">
               <div className="flex gap-1 rounded-xl bg-slate-100/80 p-1">
-                <button type="button" onClick={() => setMode('pin')} className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${mode === 'pin' ? 'bg-white text-primary shadow' : 'text-slate-500'}`}><Icon n="pin" s={13} />Colocar pin</button>
-                <button type="button" onClick={() => setMode('poly')} className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${mode === 'poly' ? 'bg-white text-primary shadow' : 'text-slate-500'}`}><Icon n="poly" s={13} />Dibujar límite</button>
+                <button type="button" onClick={() => setMode('pin')} className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${mode === 'pin' ? 'bg-white text-rose-600 shadow' : 'text-slate-500'}`}><Icon n="pin" s={13} cls={mode === 'pin' ? 'text-rose-600' : ''} />Icono de ubicación</button>
+                <button type="button" onClick={() => setMode('poly')} className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${mode === 'poly' ? 'bg-white text-primary shadow' : 'text-slate-500'}`}><Icon n="poly" s={13} />Dibujar polígono</button>
               </div>
               {pts.length > 0 && <button type="button" onClick={() => setPts(pts.slice(0, -1))} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-100">Deshacer punto</button>}
-              {pts.length > 0 && <button type="button" onClick={() => setPts([])} className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50"><Icon n="trash" s={13} />Borrar límite</button>}
+              {pts.length > 0 && <button type="button" onClick={() => setPts([])} className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50"><Icon n="trash" s={13} />Borrar polígono</button>}
               <div className="ml-auto flex gap-1 rounded-xl bg-slate-100/80 p-1">
                 {[['Mapa', false], ['Satélite', true]].map(([l, v]) => <button type="button" key={l} onClick={() => setSat(v)} className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${sat === v ? 'bg-white text-primary shadow' : 'text-slate-500'}`}>{l}</button>)}
               </div>
@@ -185,15 +194,21 @@ export function ParcelForm({ initial, onSave, onCancel }) {
                 onPick={pick}
                 label={f.name.trim() || 'Ubicación del terreno'}
               />
-              <button type="button" onClick={handleUseMyLocation} className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-primary shadow-lg transition-all hover:scale-105"><Icon n="cross" s={14} />Usar mi ubicación</button>
-              <div className="pointer-events-none absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-slate-600 shadow backdrop-blur">{mode === 'pin' ? 'Haz clic para mover el pin' : `Puntos: ${pts.length}${pts.length >= 3 ? ` · ${fmt(areaHa(pts))} ha` : ' (mínimo 3)'}`}</div>
+              <button type="button" onClick={handleUseMyLocation} className="absolute bottom-3 right-3 z-[400] flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-bold text-primary shadow-lg backdrop-blur transition-all hover:scale-105 hover:bg-white"><Icon n="cross" s={14} />Usar mi ubicación GPS</button>
+              <div className="pointer-events-none absolute left-3 top-3 z-[400] flex items-center gap-2 rounded-xl bg-slate-900/90 px-3 py-1.5 text-[11px] font-semibold text-white shadow-xl backdrop-blur">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75"></span>
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500"></span>
+                </span>
+                {mode === 'pin' ? '📍 Icono de ubicación visible: Toca o arrastra para fijar' : `Polígono: ${pts.length}${pts.length >= 3 ? ` puntos · ${fmt(areaHa(pts))} ha` : ' (mínimo 3 puntos)'}`}
+              </div>
             </div>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <L t="Latitud" id="f-lat"><input id="f-lat" className="field" value={latS} onChange={e => { setLatS(e.target.value); onLL(e.target.value, lngS); }} /></L>
-              <L t="Longitud" id="f-lng"><input id="f-lng" className="field" value={lngS} onChange={e => { setLngS(e.target.value); onLL(latS, e.target.value); }} /></L>
+              <L t="Latitud (grados decimales)" id="f-lat"><input id="f-lat" className="field font-mono text-sm" value={latS} onChange={e => { setLatS(e.target.value); onLL(e.target.value, lngS); }} /></L>
+              <L t="Longitud (grados decimales)" id="f-lng"><input id="f-lng" className="field font-mono text-sm" value={lngS} onChange={e => { setLngS(e.target.value); onLL(latS, e.target.value); }} /></L>
             </div>
             {err.ll && <p className="mt-1 text-xs font-medium text-rose-600">{err.ll}</p>}
-            <div className="mt-3 flex items-start gap-2 rounded-xl bg-sky/10 p-3 text-xs text-primary"><Icon n="globe" s={15} cls="mt-0.5" />Al guardar, consultaremos automáticamente NASA POWER y SMAP para esta ubicación.</div>
+            <div className="mt-3 flex items-start gap-2 rounded-xl bg-sky/10 p-3 text-xs text-primary"><Icon n="globe" s={15} cls="mt-0.5" />Al guardar, consultaremos automáticamente NASA POWER y SMAP para esta ubicación geográfica.</div>
           </div>
           <div className="flex justify-end gap-3">
             <Btn variant="ghost" onClick={onCancel}>Cancelar</Btn>
