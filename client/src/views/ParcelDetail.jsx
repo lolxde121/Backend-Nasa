@@ -98,42 +98,95 @@ export function DetailBody({ p, layer, setLayer, info, al, recs, segs, go }) {
       </div>
       <div className="flex flex-col gap-5">
         <div className="card overflow-hidden">
-          <div className="flex items-center justify-between px-5 pt-5"><h2 className="font-display text-base font-semibold">Ubicación del terreno</h2>
-            <div className="flex gap-1 rounded-xl bg-slate-100/80 p-1">{[['map', 'Mapa'], ['sat', 'Satélite']].map(([k, l]) => <button key={k} onClick={() => setLayer(k)} className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${layer === k ? 'bg-white text-primary shadow' : 'text-slate-500'}`}>{l}</button>)}</div></div>
+          <div className="flex items-center justify-between px-5 pt-5">
+            <h2 className="font-display text-lg font-bold text-ink">Ubicación de la parcela</h2>
+            <div className="flex gap-1.5 rounded-xl bg-slate-100/90 p-1">
+              {[['map', 'Mapa'], ['sat', 'Satélite']].map(([k, l]) => (
+                <button
+                  key={k}
+                  onClick={() => setLayer(k)}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
+                    layer === k ? 'bg-white text-primary shadow' : 'text-slate-500'
+                  }`}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="relative m-4 aspect-[5/4] overflow-hidden rounded-2xl border border-slate-200">
-            <MapView lat={p.lat} lng={p.lng} seed={p.seed} pin={p.pin} poly={p.poly} satellite={layer !== 'map'} label={p.name} />
+            {/* Sin polígonos: mapa limpio centrado en el pin de ubicación */}
+            <MapView
+              lat={p.lat}
+              lng={p.lng}
+              seed={p.seed}
+              pin={p.pin}
+              satellite={layer !== 'map'}
+              label={p.name}
+            />
           </div>
           <div className="grid grid-cols-2 gap-px border-t border-slate-100 bg-slate-100">
-            {info.map(([i, l, v]) => <div key={l} className="flex items-start gap-2.5 bg-white/90 p-3"><span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-sky/10 text-primary"><Icon n={i} s={14} /></span><div className="min-w-0"><div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{l}</div><div className="truncate text-xs font-bold" title={v}>{v}</div></div></div>)}
+            {info.map(([i, l, v]) => (
+              <div key={l} className="flex items-start gap-3 bg-white/95 p-3.5">
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-sky/10 text-primary">
+                  <Icon n={i} s={16} />
+                </span>
+                <div className="min-w-0">
+                  <div className="text-xs font-bold uppercase tracking-wider text-slate-400">{l}</div>
+                  <div className="truncate text-sm font-bold text-ink" title={v}>{v}</div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
         <div className="card p-5">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-display text-base font-semibold">Telemetría Satelital NASA</h2>
-            <span className="rounded-full bg-mint/15 px-2.5 py-0.5 text-[11px] font-bold text-teal-700">En vivo</span>
+            <h2 className="font-display text-lg font-bold text-ink">Telemetría Satelital NASA</h2>
+            <span className="rounded-full bg-mint/15 px-3 py-1 text-xs font-bold text-teal-700">En vivo</span>
           </div>
-          <div className="flex flex-col gap-2 text-xs">
-            <div className="flex items-center justify-between rounded-xl bg-slate-50 p-2.5">
-              <span className="font-medium text-slate-500">Misión NASA POWER</span>
+          <div className="flex flex-col gap-2.5 text-sm">
+            <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3">
+              <span className="font-medium text-slate-600">Misión NASA POWER</span>
               <span className="font-bold text-primary">T2M · {fmt(p.temp)} °C</span>
             </div>
-            <div className="flex items-center justify-between rounded-xl bg-slate-50 p-2.5">
-              <span className="font-medium text-slate-500">Sensor NASA SMAP L3/L4</span>
+            <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3">
+              <span className="font-medium text-slate-600">Sensor NASA SMAP L3/L4</span>
               <span className="font-bold text-sky">{fmt(p.hum, 0)} % Humedad Suelo</span>
             </div>
-            <div className="flex items-center justify-between rounded-xl bg-slate-50 p-2.5">
-              <span className="font-medium text-slate-500">Satélite MODIS NDVI 250m</span>
+            <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3">
+              <span className="font-medium text-slate-600">Satélite MODIS NDVI 250m</span>
               <span className="font-bold text-teal-600">{p.ndvi ? fmt(p.ndvi, 2) : '0.68'} Vigor Vegetal</span>
             </div>
           </div>
         </div>
 
         <div className="card p-5">
-          <h2 className="mb-3 font-display text-base font-semibold">Alertas y recomendaciones</h2>
-          <div className="flex flex-col gap-2.5">
-            {al.map((a, i) => <div key={i} className="flex gap-3 rounded-xl border border-rose-100 bg-rose-50/60 p-3"><Icon n="warn" s={16} cls="mt-0.5 text-rose-600" /><div><b className="block text-sm">{a.t}</b><span className="text-xs text-slate-600">{a.d}</span></div></div>)}
-            {recs.map((r, i) => <div key={i} className="flex gap-3 rounded-xl border border-slate-100 bg-white/80 p-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-mint/10 text-teal-700"><Icon n={r.icon} s={15} /></span><div><div className="flex items-center gap-2"><b className="text-sm">{r.t}</b><span className={`rounded-full border px-1.5 text-[10px] font-bold ${PRIO[r.pr]}`}>{r.pr}</span></div><span className="text-xs text-slate-600">{r.d}</span></div></div>)}
+          <h2 className="mb-3 font-display text-lg font-bold text-ink">Alertas y recomendaciones</h2>
+          <div className="flex flex-col gap-3">
+            {al.map((a, i) => (
+              <div key={i} className="flex gap-3 rounded-xl border border-rose-100 bg-rose-50/70 p-3.5">
+                <Icon n="warn" s={18} cls="mt-0.5 text-rose-600 shrink-0" />
+                <div>
+                  <b className="block text-sm font-bold text-rose-900">{a.t}</b>
+                  <span className="text-xs text-rose-700 leading-relaxed">{a.d}</span>
+                </div>
+              </div>
+            ))}
+            {recs.map((r, i) => (
+              <div key={i} className="flex gap-3 rounded-xl border border-slate-100 bg-white/90 p-3.5 shadow-sm">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-mint/10 text-teal-700">
+                  <Icon n={r.icon} s={17} />
+                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <b className="text-sm font-bold text-ink">{r.t}</b>
+                    <span className={`rounded-full border px-2 py-0.5 text-xs font-bold ${PRIO[r.pr]}`}>{r.pr}</span>
+                  </div>
+                  <span className="mt-1 block text-xs leading-relaxed text-slate-600">{r.d}</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

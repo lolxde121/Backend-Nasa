@@ -119,6 +119,17 @@ input[type=range] {
   background-clip: content-box;
 }
 
+.custom-leaflet-pin {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.leaflet-marker-icon.custom-leaflet-pin {
+  overflow: visible !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation: none !important;
