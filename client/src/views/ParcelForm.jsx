@@ -112,9 +112,12 @@ export function ParcelForm({ initial, onSave, onCancel }) {
               <label htmlFor="f-place" className="mb-1.5 block text-xs font-bold text-slate-700">Buscar dirección o lugar</label>
               <Icon n="search" s={15} cls="pointer-events-none absolute left-3 top-[2.15rem] text-slate-400" />
               <input id="f-place" className="field !pl-9" value={f.place} autoComplete="off" onFocus={() => setSug(true)} onChange={e => { set('place', e.target.value); setSug(true); }} />
-              {sug && sugs.length > 0 && <div className="pop absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-slate-100 bg-white shadow-xl">
-                {sugs.map(x => <button type="button" key={x.n} onClick={() => choosePlace(x)} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-sky/10"><Icon n="pin" s={14} cls="text-sky" />{x.n}</button>)}
-              </div>}
+              {sug && sugs.length > 0 && <>
+                <div className="fixed inset-0 z-10" onClick={() => setSug(false)} />
+                <div className="pop absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-slate-100 bg-white shadow-xl">
+                  {sugs.map(x => <button type="button" key={x.n} onClick={() => choosePlace(x)} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-sky/10"><Icon n="pin" s={14} cls="text-sky" />{x.n}</button>)}
+                </div>
+              </>}
             </div>
             <div className="mb-2 flex flex-wrap items-center gap-2">
               <div className="flex gap-1 rounded-xl bg-slate-100/80 p-1">
@@ -128,7 +131,7 @@ export function ParcelForm({ initial, onSave, onCancel }) {
               </div>
             </div>
             <div className="relative aspect-[5/3] overflow-hidden rounded-2xl border border-slate-200 shadow-inner">
-              <MapView seed={place.lat * 10 | 0} pin={pin} satellite={sat} draft={pts} onPick={pick} label={f.name.trim() || 'Ubicación del terreno'} />
+              <MapView seed={place.lat * 10 | 0} pin={pin} satellite={sat} draft={pts} poly={initial?.poly} onPick={pick} label={f.name.trim() || 'Ubicación del terreno'} />
               <button type="button" onClick={handleUseMyLocation} className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-primary shadow-lg transition-all hover:scale-105"><Icon n="cross" s={14} />Usar mi ubicación</button>
               <div className="pointer-events-none absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-slate-600 shadow backdrop-blur">{mode === 'pin' ? 'Haz clic para mover el pin' : `Puntos: ${pts.length}${pts.length >= 3 ? ` · ${fmt(areaHa(pts))} ha` : ' (mínimo 3)'}`}</div>
             </div>

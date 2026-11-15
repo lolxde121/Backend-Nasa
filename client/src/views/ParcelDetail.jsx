@@ -101,7 +101,7 @@ export function DetailBody({ p, layer, setLayer, info, al, recs, segs, go }) {
           <div className="flex items-center justify-between px-5 pt-5"><h2 className="font-display text-base font-semibold">Ubicación del terreno</h2>
             <div className="flex gap-1 rounded-xl bg-slate-100/80 p-1">{[['map', 'Mapa'], ['sat', 'Satélite']].map(([k, l]) => <button key={k} onClick={() => setLayer(k)} className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${layer === k ? 'bg-white text-primary shadow' : 'text-slate-500'}`}>{l}</button>)}</div></div>
           <div className="relative m-4 aspect-[5/4] overflow-hidden rounded-2xl border border-slate-200">
-            <MapView seed={p.seed} pin={p.pin} satellite={layer !== 'map'} label={p.name} slice />
+            <MapView seed={p.seed} pin={p.pin} poly={p.poly} satellite={layer !== 'map'} label={p.name} slice />
           </div>
           <div className="grid grid-cols-2 gap-px border-t border-slate-100 bg-slate-100">
             {info.map(([i, l, v]) => <div key={l} className="flex items-start gap-2.5 bg-white/90 p-3"><span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-sky/10 text-primary"><Icon n={i} s={14} /></span><div className="min-w-0"><div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{l}</div><div className="truncate text-xs font-bold" title={v}>{v}</div></div></div>)}

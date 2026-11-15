@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { clamp, rng } from '../lib/utils';
 
-export function MapView({ seed, pin, satellite, draft, onPick, slice, showPin = true, label }) {
+export function MapView({ seed, pin, satellite, draft, poly, onPick, slice, showPin = true, label }) {
   const [hov, setHov] = useState(false);
   const blocks = useMemo(() => {
     const r = rng(seed * 13 + 5);
@@ -15,6 +15,12 @@ export function MapView({ seed, pin, satellite, draft, onPick, slice, showPin = 
       onClick={onPick ? (e) => { const r = e.currentTarget.getBoundingClientRect(); onPick(((e.clientX - r.left) / r.width) * 600, ((e.clientY - r.top) / r.height) * 360); } : undefined}>
       <rect width="600" height="360" fill={satellite ? '#2F4A34' : '#E6EFF9'} />
       {blocks.map((b, i) => <rect key={i} x={b.x} y={b.y} width={b.w} height={b.h} rx={satellite ? 6 : 10} fill={satellite ? SAT[b.c] : b.g ? '#CDEBDD' : '#D4E3F5'} opacity={satellite ? .95 : 1} />)}
+      {poly && poly.length >= 3 && (!draft || draft.length === 0) && (
+        <polygon points={poly.map(p => `${p.x},${p.y}`).join(' ')} fill="rgba(43,179,163,.25)" stroke="#2BB3A3" strokeWidth="2.5" />
+      )}
+      {draft && draft.length >= 2 && (
+        <polyline points={draft.map(p => `${p.x},${p.y}`).join(' ')} fill={draft.length >= 3 ? 'rgba(79,163,224,.22)' : 'none'} stroke="#0B3D91" strokeWidth="2.5" strokeDasharray={draft.length >= 3 ? 'none' : '4 4'} />
+      )}
       {draft && draft.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r="7" fill="#fff" stroke="#0B3D91" strokeWidth="3.5" />)}
       {showPin && pin && <g onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)} style={label ? { cursor: 'pointer' } : undefined}>
         <circle className="pulse-ring" cx={pin.x} cy={pin.y} r="14" fill="#0B3D91" opacity=".35" />
