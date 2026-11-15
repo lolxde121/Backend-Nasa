@@ -10,29 +10,8 @@ import { fmt, statusOf } from '../lib/utils';
 import { api } from '../services/api';
 import { Terrenos } from './Terrenos';
 
-export function Row({ l, k, min, max, step, u, c, setC }) { return <div><div className="mb-1 flex justify-between text-sm"><label htmlFor={'a-' + k} className="font-semibold">{l}</label><b className="text-primary" style={{ fontVariantNumeric: 'tabular-nums' }}>{c[k]} {u}</b></div>
-    <input id={'a-' + k} type="range" min={min} max={max} step={step} value={c[k]} onChange={e => setC({ ...c, [k]: parseFloat(e.target.value) })} /></div>; }
-
-export function AlertsModal({ p, cfg, onSave, onClose }) {
-  const [c, setC] = useState(cfg);
-  return <div className="fixed inset-0 z-50 grid place-items-center bg-ink/40 p-4 backdrop-blur-sm" onClick={onClose}>
-    <div role="dialog" aria-modal="true" aria-label="Ajustar alertas" className="pop card w-full max-w-md !bg-white p-6" onClick={e => e.stopPropagation()}>
-      <div className="mb-1 flex items-center justify-between"><h2 className="font-display text-lg font-bold">Ajustar alertas</h2><button onClick={onClose} aria-label="Cerrar" className="rounded-full p-1.5 text-slate-500 hover:bg-slate-100"><Icon n="x" s={18} /></button></div>
-      <p className="mb-5 text-sm text-slate-500">Recibe un aviso cuando {p.name} salga de estos rangos.</p>
-      <div className="flex flex-col gap-5">
-        <Row c={c} setC={setC} l="Humedad mínima del suelo" k="humMin" min={10} max={50} step={1} u="%" />
-        <Row c={c} setC={setC} l="Temperatura máxima" k="tempMax" min={20} max={40} step={1} u="°C" />
-        <label className="flex cursor-pointer items-center justify-between rounded-xl bg-slate-50 p-3 text-sm font-semibold">Enviar notificación push
-          <input type="checkbox" checked={c.push} onChange={e => setC({ ...c, push: e.target.checked })} className="h-5 w-5 accent-[#0B3D91]" /></label>
-      </div>
-      <div className="mt-6 flex justify-end gap-3"><Btn variant="ghost" onClick={onClose}>Cancelar</Btn><Btn onClick={() => onSave(c)}>Guardar alertas</Btn></div>
-    </div>
-  </div>;
-}
-
 export function Detail({ p, go, cfg, setCfg, notify, segs, onDelete }) {
   const [layer, setLayer] = useState('sat');
-  const [modal, setModal] = useState(false);
   const [liveNasa, setLiveNasa] = useState(p.resumen_satelital || null);
   const [loadingNasa, setLoadingNasa] = useState(false);
 
@@ -77,10 +56,6 @@ export function Detail({ p, go, cfg, setCfg, notify, segs, onDelete }) {
 
   const st = statusOf(activeParcel);
   const al = alertsFor(activeParcel, cfg), recs = recsFor(activeParcel);
-  const copy = async () => {
-    const txt = `${activeParcel.name} (${activeParcel.loc}) · ${fmt(activeParcel.area)} ha · ${activeParcel.crop}\nTemp ${fmt(activeParcel.temp)} °C · Humedad ${fmt(activeParcel.hum, 0)} % · Lluvia 30 d ${fmt(activeParcel.rain30)} mm\nEstado: ${st}`;
-    try { await navigator.clipboard.writeText(txt); notify('Resumen del reporte copiado al portapapeles'); } catch (e) { notify('No se pudo copiar. Selecciona el texto manualmente.'); }
-  };
   const info = [
     ['pin', 'Ubicación', activeParcel.place || activeParcel.loc],
     ['map', 'Coordenadas', `${activeParcel.lat.toFixed(4)}, ${activeParcel.lng.toFixed(4)}`],
@@ -99,8 +74,6 @@ export function Detail({ p, go, cfg, setCfg, notify, segs, onDelete }) {
           <div className="mt-3 flex flex-wrap gap-2"><Chip>{fmt(activeParcel.area)} ha</Chip><Chip tone="mint">{activeParcel.crop}</Chip><Chip tone="slate" icon="drop">{activeParcel.irrigation}</Chip>{al.length > 0 && <Chip tone="slate" icon="warn">{al.length} {al.length === 1 ? 'alerta' : 'alertas'}</Chip>}</div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Btn variant="ghost" icon="download" onClick={copy}>Exportar reporte</Btn>
-          <Btn variant="ghost" icon="bell" onClick={() => setModal(true)}>Ajustar alertas</Btn>
           {onDelete && (
             <Btn variant="ghost" className="!text-rose-600 hover:!border-rose-200 hover:!bg-rose-50" icon="trash" onClick={() => {
               if (window.confirm(`¿Estás seguro de que deseas eliminar la parcela "${activeParcel.name}"?`)) {
@@ -113,7 +86,6 @@ export function Detail({ p, go, cfg, setCfg, notify, segs, onDelete }) {
       </div>
 
       <DetailBody p={activeParcel} loadingNasa={loadingNasa} layer={layer} setLayer={setLayer} info={info} al={al} recs={recs} segs={segs} go={go} />
-      {modal && <AlertsModal p={activeParcel} cfg={cfg} onClose={() => setModal(false)} onSave={(c) => { setCfg(c); setModal(false); notify('Alertas actualizadas'); }} />}
     </div>
   );
 }
