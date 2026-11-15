@@ -1,14 +1,29 @@
 const API_BASE = '/api';
 
+// Obtiene el token guardado en localStorage
+function getToken() {
+  try { return localStorage.getItem('agromonitor_token') || null; } catch { return null; }
+}
+
+// Headers con Authorization si hay token
+function authHeaders(extra = {}) {
+  const token = getToken();
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    ...extra
+  };
+}
+
 export const api = {
   async getTerrenos() {
-    const res = await fetch(`${API_BASE}/terrenos`);
+    const res = await fetch(`${API_BASE}/terrenos`, { headers: authHeaders() });
     if (!res.ok) throw new Error('Error al cargar la lista de terrenos');
     return res.json();
   },
 
   async getTerrenoById(id) {
-    const res = await fetch(`${API_BASE}/terrenos/${id}`);
+    const res = await fetch(`${API_BASE}/terrenos/${id}`, { headers: authHeaders() });
     if (!res.ok) throw new Error(`Error al cargar terreno #${id}`);
     return res.json();
   },
@@ -16,7 +31,7 @@ export const api = {
   async createTerreno(terrenoData) {
     const res = await fetch(`${API_BASE}/terrenos`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify(terrenoData)
     });
     if (!res.ok) {
@@ -29,7 +44,7 @@ export const api = {
   async updateTerreno(id, terrenoData) {
     const res = await fetch(`${API_BASE}/terrenos/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify(terrenoData)
     });
     if (!res.ok) throw new Error(`Error al actualizar terreno #${id}`);
@@ -38,20 +53,21 @@ export const api = {
 
   async deleteTerreno(id) {
     const res = await fetch(`${API_BASE}/terrenos/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: authHeaders()
     });
     if (!res.ok) throw new Error(`Error al eliminar terreno #${id}`);
     return res.json();
   },
 
   async getTerrenoNasaData(id) {
-    const res = await fetch(`${API_BASE}/terrenos/${id}/nasa-data`);
+    const res = await fetch(`${API_BASE}/terrenos/${id}/nasa-data`, { headers: authHeaders() });
     if (!res.ok) throw new Error('Error al obtener datos satelitales de la NASA');
     return res.json();
   },
 
   async getTerrenoRecomendaciones(id) {
-    const res = await fetch(`${API_BASE}/terrenos/${id}/recomendaciones`);
+    const res = await fetch(`${API_BASE}/terrenos/${id}/recomendaciones`, { headers: authHeaders() });
     if (!res.ok) throw new Error('Error al generar recomendaciones agronómicas');
     return res.json();
   },
@@ -63,7 +79,7 @@ export const api = {
   },
 
   async getSeguimientos() {
-    const res = await fetch(`${API_BASE}/seguimientos`);
+    const res = await fetch(`${API_BASE}/seguimientos`, { headers: authHeaders() });
     if (!res.ok) throw new Error('Error al cargar la lista de seguimientos');
     return res.json();
   },
@@ -71,7 +87,7 @@ export const api = {
   async createSeguimiento(segData) {
     const res = await fetch(`${API_BASE}/seguimientos`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify(segData)
     });
     if (!res.ok) {
@@ -84,7 +100,7 @@ export const api = {
   async registerRiego(id, date, tone = 'ok', label = 'Seguiste la recomendación') {
     const res = await fetch(`${API_BASE}/seguimientos/${id}/riego`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({ date, tone, label })
     });
     if (!res.ok) throw new Error(`Error al registrar riego en seguimiento #${id}`);
@@ -93,13 +109,14 @@ export const api = {
 
   async deleteSeguimiento(id) {
     const res = await fetch(`${API_BASE}/seguimientos/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: authHeaders()
     });
     if (!res.ok) throw new Error(`Error al eliminar seguimiento #${id}`);
     return res.json();
   },
 
-  // Autenticación de usuarios
+  // Autenticación
   async login(email, password) {
     const res = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
@@ -107,9 +124,7 @@ export const api = {
       body: JSON.stringify({ email, password })
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(data.error || 'Error al iniciar sesión');
-    }
+    if (!res.ok) throw new Error(data.error || 'Error al iniciar sesión');
     return data;
   },
 
@@ -120,17 +135,13 @@ export const api = {
       body: JSON.stringify({ nombre, email, password, finca_nombre })
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(data.error || 'Error al registrar la cuenta');
-    }
+    if (!res.ok) throw new Error(data.error || 'Error al registrar la cuenta');
     return data;
   },
 
   async getMe(token) {
     const res = await fetch(`${API_BASE}/auth/me`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) throw new Error('Sesión inválida o expirada');
     return res.json();
@@ -140,12 +151,8 @@ export const api = {
     try {
       await fetch(`${API_BASE}/auth/logout`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
-    } catch (e) {
-      // Ignorar error al cerrar sesión
-    }
+    } catch (e) {}
   }
 };

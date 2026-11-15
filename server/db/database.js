@@ -84,6 +84,7 @@ function initDatabase() {
       lluvia_ayer INTEGER DEFAULT 0,
       pronostico_json TEXT,
       historial_json TEXT,
+      usuario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (terreno_id) REFERENCES terrenos(id) ON DELETE CASCADE
     );
@@ -111,6 +112,25 @@ function initDatabase() {
   `);
 
   seedUsuarios();
+
+  // Migraciones: agregar usuario_id a terrenos si no existe
+  try {
+    db.exec('ALTER TABLE terrenos ADD COLUMN usuario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE');
+    console.log('✅ Columna usuario_id agregada a terrenos');
+    // Asignar terrenos existentes sin dueño al usuario 1 (cristopher)
+    db.exec('UPDATE terrenos SET usuario_id = 1 WHERE usuario_id IS NULL');
+  } catch (e) {
+    // La columna ya existe, ignorar
+  }
+
+  // Migraciones: agregar usuario_id a seguimientos si no existe
+  try {
+    db.exec('ALTER TABLE seguimientos ADD COLUMN usuario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE');
+    console.log('✅ Columna usuario_id agregada a seguimientos');
+    db.exec('UPDATE seguimientos SET usuario_id = 1 WHERE usuario_id IS NULL');
+  } catch (e) {
+    // La columna ya existe, ignorar
+  }
 
   // Reset or initialize seed data to match AgroMonitor Figma design
   const countStmt = db.prepare('SELECT COUNT(*) as count FROM terrenos');
@@ -214,8 +234,8 @@ function seedFigmaTerrenos() {
   const insertStmt = db.prepare(`
     INSERT INTO terrenos (
       nombre, propietario, descripcion, ubicacion, latitud, longitud, 
-      area_hectareas, tipo_suelo, clima_zona, fuente_agua, cultivo_actual, estado, poligono_geojson
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      area_hectareas, tipo_suelo, clima_zona, fuente_agua, cultivo_actual, estado, poligono_geojson, usuario_id
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
   `);
 
   const demoTerrenos = [
