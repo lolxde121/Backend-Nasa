@@ -74,6 +74,19 @@ function initDatabase() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (terreno_id) REFERENCES terrenos(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS seguimientos (
+      id TEXT PRIMARY KEY,
+      terreno_id INTEGER NOT NULL,
+      cultivo TEXT NOT NULL,
+      fecha_siembra TEXT NOT NULL,
+      ultimo_riego TEXT NOT NULL,
+      lluvia_ayer INTEGER DEFAULT 0,
+      pronostico_json TEXT,
+      historial_json TEXT,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (terreno_id) REFERENCES terrenos(id) ON DELETE CASCADE
+    );
   `);
 
   // Reset or initialize seed data to match AgroMonitor Figma design
@@ -84,6 +97,94 @@ function initDatabase() {
     console.log('🌱 Inicializando terrenos del diseño AgroMonitor (Figma)...');
     seedFigmaTerrenos();
   }
+
+  const countSegStmt = db.prepare('SELECT COUNT(*) as count FROM seguimientos');
+  const segResult = countSegStmt.get();
+  if (segResult.count === 0) {
+    seedSeguimientos();
+  }
+}
+
+function seedSeguimientos() {
+  const insertStmt = db.prepare(`
+    INSERT INTO seguimientos (
+      id, terreno_id, cultivo, fecha_siembra, ultimo_riego, lluvia_ayer, pronostico_json, historial_json
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  const initialSegs = [
+    {
+      id: 's1',
+      terreno_id: 1,
+      cultivo: 'Maíz',
+      sow: '2026-06-20',
+      lastWater: '2026-11-11',
+      lluvia_ayer: 0,
+      forecast: [[10, 0], [5, 0], [20, 1], [40, 2], [80, 12], [50, 4], [15, 0]],
+      hist: [
+        { id: 'h1', d: '2026-11-11', tone: 'ok', label: 'Seguiste la recomendación' },
+        { id: 'h2', d: '2026-11-03', tone: 'ok', label: 'Seguiste la recomendación' },
+        { id: 'h3', d: '2026-10-26', tone: 'warn', label: 'Un día después de lo sugerido' }
+      ]
+    },
+    {
+      id: 's2',
+      terreno_id: 2,
+      cultivo: 'Jitomate',
+      sow: '2026-09-03',
+      lastWater: '2026-11-08',
+      lluvia_ayer: 0,
+      forecast: [[3, 0], [0, 0], [5, 0], [2, 0], [4, 0], [0, 0], [5, 0]],
+      hist: [
+        { id: 'h4', d: '2026-11-08', tone: 'ok', label: 'Seguiste la recomendación' },
+        { id: 'h5', d: '2026-11-01', tone: 'ok', label: 'Seguiste la recomendación' }
+      ]
+    },
+    {
+      id: 's3',
+      terreno_id: 3,
+      cultivo: 'Frijol',
+      sow: '2026-08-15',
+      lastWater: '2026-11-13',
+      lluvia_ayer: 1,
+      forecast: [[60, 6], [20, 1], [10, 0], [5, 0], [0, 0], [5, 0], [10, 0]],
+      hist: [
+        { id: 'h6', d: '2026-11-13', tone: 'ok', label: 'Seguiste la recomendación' },
+        { id: 'h7', d: '2026-11-05', tone: 'ok', label: 'Seguiste la recomendación' }
+      ]
+    },
+    {
+      id: 's4',
+      terreno_id: 1,
+      cultivo: 'Chile',
+      sow: '2026-10-10',
+      lastWater: '2026-11-09',
+      lluvia_ayer: 0,
+      forecast: [[5, 0], [0, 0], [5, 0], [3, 0], [5, 0], [10, 1], [0, 0]],
+      hist: [
+        { id: 'h8', d: '2026-11-09', tone: 'ok', label: 'Seguiste la recomendación' },
+        { id: 'h9', d: '2026-11-03', tone: 'warn', label: 'Un día después de lo sugerido' }
+      ]
+    }
+  ];
+
+  for (const s of initialSegs) {
+    try {
+      insertStmt.run(
+        s.id,
+        s.terreno_id,
+        s.cultivo,
+        s.sow,
+        s.lastWater,
+        s.lluvia_ayer,
+        JSON.stringify(s.forecast),
+        JSON.stringify(s.hist)
+      );
+    } catch (e) {
+      // Ignorar si ya existía
+    }
+  }
+
 }
 
 function seedFigmaTerrenos() {

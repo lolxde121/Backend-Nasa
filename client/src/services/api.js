@@ -60,5 +60,42 @@ export const api = {
     const res = await fetch(`${API_BASE}/nasa/clima-punto?lat=${lat}&lon=${lon}&suelo=${encodeURIComponent(suelo)}`);
     if (!res.ok) throw new Error('Error al consultar clima puntual');
     return res.json();
+  },
+
+  async getSeguimientos() {
+    const res = await fetch(`${API_BASE}/seguimientos`);
+    if (!res.ok) throw new Error('Error al cargar la lista de seguimientos');
+    return res.json();
+  },
+
+  async createSeguimiento(segData) {
+    const res = await fetch(`${API_BASE}/seguimientos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(segData)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Error al guardar el seguimiento');
+    }
+    return res.json();
+  },
+
+  async registerRiego(id, date, tone = 'ok', label = 'Seguiste la recomendación') {
+    const res = await fetch(`${API_BASE}/seguimientos/${id}/riego`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date, tone, label })
+    });
+    if (!res.ok) throw new Error(`Error al registrar riego en seguimiento #${id}`);
+    return res.json();
+  },
+
+  async deleteSeguimiento(id) {
+    const res = await fetch(`${API_BASE}/seguimientos/${id}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) throw new Error(`Error al eliminar seguimiento #${id}`);
+    return res.json();
   }
 };
