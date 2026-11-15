@@ -14,54 +14,50 @@ export function Dashboard({ parcels = [], go, alerts = [], segs = [] }) {
     {
       id: 'terrenos',
       title: 'Mis Terrenos y Parcelas',
-      category: 'Catastro y Ubicación Satelital',
-      desc: 'Administra tus predios agrícolas, visualízalos en el mapa satelital interactivo, consulta la humedad del suelo SMAP y registra nuevos terrenos con su ubicación exacta.',
-      metric: `${parcels.length} ${parcels.length === 1 ? 'terreno' : 'terrenos'} · ${fmt(totalArea, 1)} ha totales`,
-      subMetric: `${fmt(avgH, 0)}% humedad media SMAP`,
+      category: 'Ubicación y Catastro',
+      desc: 'Consulta tus predios en el mapa satelital, mide humedad del suelo SMAP y registra nuevas parcelas.',
+      metric: `${parcels.length} ${parcels.length === 1 ? 'terreno' : 'terrenos'} (${fmt(totalArea, 1)} ha totales)`,
       icon: 'map',
       gradient: 'from-[#0B3D91] to-[#1E60CC]',
-      badge: `${parcels.length} registrados`,
+      badge: `${parcels.length} predios`,
       badgeStyle: 'bg-blue-50 text-blue-700 border-blue-200',
-      actionLabel: 'Ver mis terrenos'
+      actionLabel: 'Ver terrenos'
     },
     {
       id: 'seg',
       title: 'Control de Riego con IA',
-      category: 'Asistente Diario de Riego',
-      desc: 'Semáforo inteligente diario con balance hídrico FAO-56. Te indica al grano si debes regar hoy, esperar lluvia satelital o no regar para ahorrar agua y costos.',
-      metric: riego.length > 0 ? `${riego.length} necesitan riego urgente` : 'Humedad óptima en todas las parcelas',
-      subMetric: `${segs.length} ${segs.length === 1 ? 'cultivo en monitoreo' : 'cultivos en monitoreo'}`,
+      category: 'Semáforo de Riego FAO-56',
+      desc: 'Decide cuándo regar hoy, esperar lluvia satelital o pausar el riego para ahorrar agua y costos.',
+      metric: riego.length > 0 ? `${riego.length} requieren riego prioritario` : 'Humedad óptima en todas las parcelas',
       icon: 'sprout',
       gradient: 'from-[#D97706] to-[#F59E0B]',
       badge: riego.length > 0 ? `${riego.length} por regar` : 'Al día',
       badgeStyle: riego.length > 0 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      actionLabel: 'Ver recomendaciones de riego'
+      actionLabel: 'Ver semáforo de riego'
     },
     {
       id: 'recs',
       title: 'Qué Sembrar (Recomendador con IA)',
       category: 'Inteligencia Agroclimática',
-      desc: 'Descubre qué cultivos son más viables y rentables cruzando el tipo de suelo de tu parcela con el historial agroclimático de temperatura y precipitación de la NASA.',
-      metric: 'Evaluación agroclimática de 8+ cultivos',
-      subMetric: 'Calendario de siembra y rendimiento estimado',
+      desc: 'Descubre los cultivos más compatibles cruzando tu suelo con el clima y lluvia de la NASA.',
+      metric: '8+ cultivos evaluados para tu zona',
       icon: 'sparkles',
       gradient: 'from-[#0F766E] to-[#2BB3A3]',
       badge: 'Recomendación IA',
       badgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      actionLabel: 'Consultar cultivos sugeridos'
+      actionLabel: 'Ver cultivos sugeridos'
     },
     {
       id: 'graf',
       title: 'Pronóstico y Clima Satelital',
       category: 'Telemetría Satelital NASA',
-      desc: 'Consulta tendencias agroclimáticas en tiempo real: curvas de temperatura histórica, evolución de humedad SMAP y pronóstico acumulado de lluvia a 7 días.',
-      metric: `${fmt(avgT)}°C temperatura media`,
-      subMetric: `${fmt(rain7)} mm de lluvia acumulada a 7 días`,
+      desc: 'Histórico de temperatura, curvas de humedad SMAP y pronóstico de lluvia a 7 días.',
+      metric: `${fmt(avgT)}°C promedio · ${fmt(rain7)} mm lluvia a 7d`,
       icon: 'sun',
       gradient: 'from-[#1E3A8A] to-[#38BDF8]',
       badge: 'NASA POWER',
       badgeStyle: 'bg-sky-50 text-sky-700 border-sky-200',
-      actionLabel: 'Ver telemetría y pronóstico'
+      actionLabel: 'Ver pronóstico y clima'
     }
   ];
 
@@ -80,24 +76,24 @@ export function Dashboard({ parcels = [], go, alerts = [], segs = [] }) {
         <div className="pointer-events-none absolute -bottom-20 right-32 h-56 w-56 rounded-full bg-mint/30 blur-3xl" />
         <div className="relative flex flex-wrap items-center justify-between gap-6">
           <div>
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-sky-100">
-              <span className="h-2 w-2 rounded-full bg-mint animate-pulse" />
+            <div className="flex items-center gap-2 text-xs md:text-sm font-bold uppercase tracking-wider text-sky-100">
+              <span className="h-2.5 w-2.5 rounded-full bg-mint animate-pulse" />
               Telemetría Satelital Activa · NASA POWER & SMAP
             </div>
             <h1 className="mt-2 font-display text-2xl font-bold md:text-3xl">Bienvenido a Lum</h1>
-            <p className="mt-2 max-w-xl text-sm leading-relaxed text-sky-100">
+            <p className="mt-2 max-w-xl text-base leading-relaxed text-sky-100 font-normal">
               {riego.length > 0
-                ? `Atención: ${riego.length} de tus parcelas necesitan riego prioritario para evitar estrés hídrico. El resto se mantiene en niveles óptimos.`
+                ? `Atención: ${riego.length} de tus parcelas necesitan riego prioritario para evitar estrés hídrico.`
                 : 'Todas tus parcelas se encuentran en rangos hídricos y térmicos favorables según los satélites.'}
             </p>
           </div>
           <div className="flex items-center gap-4 rounded-2xl border border-white/20 bg-white/10 px-5 py-4 backdrop-blur-md">
-            <Icon n="sun" s={38} cls="text-amber-200" />
+            <Icon n="sun" s={40} cls="text-amber-200" />
             <div>
-              <div className="font-display text-3xl font-bold" style={{ fontVariantNumeric: 'tabular-nums' }}>
+              <div className="font-display text-3xl font-extrabold" style={{ fontVariantNumeric: 'tabular-nums' }}>
                 {fmt(avgT)}°C
               </div>
-              <div className="text-xs text-sky-100">Clima promedio en la zona</div>
+              <div className="text-xs md:text-sm font-semibold text-sky-100">Clima promedio en la zona</div>
             </div>
           </div>
         </div>
@@ -105,8 +101,8 @@ export function Dashboard({ parcels = [], go, alerts = [], segs = [] }) {
 
       {/* 4 SELECCIONES PRINCIPALES: Descriptivas, al grano y útiles */}
       <div className="mb-4">
-        <h2 className="font-display text-lg font-bold text-ink">¿Qué deseas realizar hoy?</h2>
-        <p className="text-xs text-slate-500">Selecciona una de las 4 opciones principales de la plataforma para comenzar:</p>
+        <h2 className="font-display text-xl font-bold text-ink">Opciones principales</h2>
+        <p className="text-sm font-medium text-slate-500">Accede directamente a los módulos clave de la plataforma:</p>
       </div>
 
       <div className="mb-8 grid gap-5 sm:grid-cols-2">
@@ -114,44 +110,41 @@ export function Dashboard({ parcels = [], go, alerts = [], segs = [] }) {
           <button
             key={sel.id}
             onClick={() => go(sel.id)}
-            className="card group flex flex-col justify-between p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-18px_rgba(11,61,145,.35)] hover:border-sky/40"
+            className="card group flex flex-col justify-between p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-sky/40"
           >
             <div>
               <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3.5">
                   <span
-                    className={`grid h-13 w-13 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${sel.gradient} text-white shadow-md transition-transform duration-300 group-hover:scale-105 group-hover:rotate-1`}
+                    className={`grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${sel.gradient} text-white shadow-md transition-transform duration-300 group-hover:scale-105`}
                   >
-                    <Icon n={sel.icon} s={24} />
+                    <Icon n={sel.icon} s={26} />
                   </span>
                   <div>
-                    <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    <span className="block text-xs font-bold uppercase tracking-wider text-slate-400">
                       {sel.category}
                     </span>
-                    <h3 className="font-display text-lg font-bold text-ink group-hover:text-primary transition-colors">
+                    <h3 className="font-display text-xl font-bold text-ink group-hover:text-primary transition-colors">
                       {sel.title}
                     </h3>
                   </div>
                 </div>
-                <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${sel.badgeStyle}`}>
+                <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${sel.badgeStyle}`}>
                   {sel.badge}
                 </span>
               </div>
 
-              <p className="mt-3.5 text-xs leading-relaxed text-slate-600">
+              <p className="mt-4 text-sm leading-relaxed text-slate-600 font-medium">
                 {sel.desc}
               </p>
             </div>
 
             <div className="mt-5 border-t border-slate-100 pt-4">
-              <div className="flex items-center justify-between text-xs">
-                <div>
-                  <span className="block font-bold text-ink">{sel.metric}</span>
-                  <span className="text-[11px] text-slate-400">{sel.subMetric}</span>
-                </div>
-                <span className="flex items-center gap-1 font-semibold text-primary transition-all group-hover:translate-x-1">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-extrabold text-ink">{sel.metric}</span>
+                <span className="flex items-center gap-1.5 font-bold text-primary transition-all group-hover:translate-x-1">
                   {sel.actionLabel}
-                  <Icon n="right" s={14} />
+                  <Icon n="right" s={16} />
                 </span>
               </div>
             </div>
@@ -161,18 +154,18 @@ export function Dashboard({ parcels = [], go, alerts = [], segs = [] }) {
 
       {/* Resumen rápido de telemetría agroclimática */}
       <div className="mb-6">
-        <h3 className="mb-3 font-display text-sm font-bold text-slate-700">Estado de tus terrenos en cifras</h3>
+        <h3 className="mb-3 font-display text-base font-bold text-slate-800">Estado de tus terrenos en cifras</h3>
         <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
           {stats.map((s) => (
-            <div key={s.l} className="card p-4 transition-all duration-300 hover:-translate-y-0.5">
-              <div className="mb-2 grid h-8 w-8 place-items-center rounded-xl" style={{ background: s.c + '18', color: s.c }}>
-                <Icon n={s.i} s={16} />
+            <div key={s.l} className="card p-5 transition-all duration-300 hover:-translate-y-0.5">
+              <div className="mb-2 grid h-10 w-10 place-items-center rounded-xl" style={{ background: s.c + '18', color: s.c }}>
+                <Icon n={s.i} s={20} />
               </div>
-              <div className="text-xs font-medium text-slate-500">{s.l}</div>
-              <div className="font-display text-xl font-bold text-ink" style={{ fontVariantNumeric: 'tabular-nums' }}>
+              <div className="text-sm font-bold text-slate-600">{s.l}</div>
+              <div className="font-display text-2xl font-black text-ink mt-0.5" style={{ fontVariantNumeric: 'tabular-nums' }}>
                 {s.v}
               </div>
-              <div className="text-[11px] text-slate-400">{s.u}</div>
+              <div className="text-xs font-semibold text-slate-400 mt-0.5">{s.u}</div>
             </div>
           ))}
         </div>

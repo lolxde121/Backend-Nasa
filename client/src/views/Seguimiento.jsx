@@ -9,78 +9,78 @@ export function SegCard({ s, parcel, rec, onOpen, onWater, i }) {
   return (
     <div
       style={{ animationDelay: `${i * 50}ms` }}
-      className="card group fade-in flex flex-col justify-between p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-18px_rgba(11,61,145,.35)] hover:border-sky/40"
+      className="card group fade-in flex flex-col justify-between p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-sky/40"
     >
       <div>
         <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-sky/10 text-primary transition-transform duration-300 group-hover:scale-105">
-              <Icon n="sprout" s={22} />
+          <div className="flex items-center gap-3.5">
+            <span className="grid h-13 w-13 place-items-center rounded-2xl bg-sky/10 text-primary transition-transform duration-300 group-hover:scale-105">
+              <Icon n="sprout" s={24} />
             </span>
             <div>
-              <div className="font-display text-base font-bold text-ink">{s.crop}</div>
-              <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                <Icon n="pin" s={13} cls="text-rose-600" />
-                <span className="font-medium">{parcel?.name || 'Parcela'}</span>
+              <div className="font-display text-lg font-bold text-ink">{s.crop}</div>
+              <div className="flex items-center gap-1.5 text-sm text-slate-500 font-medium">
+                <Icon n="pin" s={14} cls="text-rose-600" />
+                <span>{parcel?.name || 'Parcela'}</span>
                 {parcel?.place && <span className="text-slate-400">· {parcel.place.split(',')[0]}</span>}
               </div>
             </div>
           </div>
-          <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold ${st.badge}`}>
-            <span className={`h-2 w-2 rounded-full ${st.dot}`} />
+          <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold ${st.badge}`}>
+            <span className={`h-2.5 w-2.5 rounded-full ${st.dot}`} />
             {st.label}
           </span>
         </div>
 
         {/* Resumen de decisión agronómica */}
-        <div className="mt-4 rounded-xl bg-gradient-to-r from-sky/10 via-mint/10 to-transparent p-3 text-xs leading-relaxed font-medium text-slate-700 border border-sky/15">
-          <div className="flex items-start gap-2">
-            <Icon n="sparkles" s={15} cls="mt-0.5 text-primary shrink-0" />
+        <div className="mt-4 rounded-xl bg-gradient-to-r from-sky/10 via-mint/10 to-transparent p-3.5 text-sm leading-relaxed font-medium text-slate-700 border border-sky/15">
+          <div className="flex items-start gap-2.5">
+            <Icon n="sparkles" s={18} cls="mt-0.5 text-primary shrink-0" />
             <div>
-              <span className="font-bold text-primary block mb-0.5">{rec.title}</span>
+              <span className="font-bold text-primary block mb-0.5 text-base">{rec.title}</span>
               {rec.summary}
             </div>
           </div>
         </div>
 
         {/* Datos clave de telemetría y riego */}
-        <dl className="mt-4 flex flex-col gap-2 border-t border-slate-100 pt-3 text-xs">
+        <dl className="mt-4 flex flex-col gap-2.5 border-t border-slate-100 pt-3.5 text-sm font-medium">
           <div className="flex items-center justify-between gap-3">
             <dt className="flex items-center gap-2 text-slate-500">
-              <Icon n="calendar" s={14} /> Fecha de siembra
+              <Icon n="calendar" s={16} /> Fecha de siembra
             </dt>
-            <dd className="font-bold text-slate-700">{dLong(s.sow)}</dd>
+            <dd className="font-bold text-slate-800">{dLong(s.sow)}</dd>
           </div>
           <div className="flex items-center justify-between gap-3">
             <dt className="flex items-center gap-2 text-slate-500">
-              <Icon n="drop" s={14} /> Último riego registrado
+              <Icon n="drop" s={16} /> Último riego registrado
             </dt>
-            <dd className="font-bold text-slate-700">{agoLabel(rec.ds)}</dd>
+            <dd className="font-bold text-slate-800">{agoLabel(rec.ds)}</dd>
           </div>
           <div className="flex items-center justify-between gap-3">
             <dt className="flex items-center gap-2 text-slate-500">
-              <Icon n="cloud" s={14} /> Pronóstico lluvia satelital
+              <Icon n="cloud" s={16} /> Lluvia satelital prevista
             </dt>
-            <dd className="font-bold text-primary">{rec.rainMeta}</dd>
+            <dd className="font-extrabold text-primary">{rec.rainMeta}</dd>
           </div>
         </dl>
       </div>
 
       {/* Acciones directas */}
-      <div className="mt-5 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
+      <div className="mt-5 flex items-center justify-between gap-2 border-t border-slate-100 pt-3.5">
         <button
           type="button"
           onClick={onOpen}
-          className="flex items-center gap-1.5 text-xs font-bold text-primary transition-all hover:translate-x-0.5"
+          className="flex items-center gap-1.5 text-sm font-bold text-primary transition-all hover:translate-x-0.5"
         >
-          Ver análisis completo
-          <Icon n="right" s={14} />
+          Ver balance completo
+          <Icon n="right" s={16} />
         </button>
 
         <button
           type="button"
           onClick={onOpen}
-          className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-all hover:bg-primary hover:text-white"
+          className="rounded-xl bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700 transition-all hover:bg-primary hover:text-white"
         >
           Gestionar riego
         </button>
@@ -164,8 +164,8 @@ export function Seguimiento({ segs, parcels, recOf, go }) {
 
       {/* 4 SELECCIONES CLARAS, DESCRIPTIVAS Y AL GRANO */}
       <div className="mb-3">
-        <h2 className="font-display text-sm font-bold uppercase tracking-wider text-slate-500">
-          Selecciona un estado de riego para filtrar:
+        <h2 className="font-display text-base font-bold text-slate-700">
+          Estado hídrico de tus parcelas:
         </h2>
       </div>
 
@@ -176,35 +176,35 @@ export function Seguimiento({ segs, parcels, recOf, go }) {
             <button
               key={sel.id}
               onClick={() => setF(sel.id)}
-              className={`card flex flex-col justify-between p-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg ${
+              className={`card flex flex-col justify-between p-5 text-left transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg ${
                 isSelected ? sel.activeColor : 'hover:border-slate-300'
               }`}
             >
               <div>
                 <div className="flex items-center justify-between gap-2">
-                  <span className={`grid h-10 w-10 place-items-center rounded-xl ${sel.iconClass}`}>
-                    <Icon n={sel.icon} s={20} />
+                  <span className={`grid h-11 w-11 place-items-center rounded-xl ${sel.iconClass}`}>
+                    <Icon n={sel.icon} s={22} />
                   </span>
-                  <span className={`font-display text-2xl font-bold ${sel.badgeClass} rounded-full px-3 py-0.5`}>
+                  <span className={`font-display text-2xl font-black ${sel.badgeClass} rounded-full px-3.5 py-0.5`}>
                     {sel.count}
                   </span>
                 </div>
-                <div className="mt-3">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                <div className="mt-3.5">
+                  <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
                     {sel.subtitle}
                   </div>
-                  <div className="font-display text-base font-bold text-ink">
+                  <div className="font-display text-lg font-bold text-ink">
                     {sel.title}
                   </div>
                 </div>
-                <p className="mt-2 text-xs leading-relaxed text-slate-500">
+                <p className="mt-2 text-sm leading-relaxed text-slate-600 font-medium">
                   {sel.desc}
                 </p>
               </div>
 
-              <div className="mt-3 border-t border-slate-100 pt-2 flex items-center justify-between text-[11px] font-semibold text-slate-400">
+              <div className="mt-3.5 border-t border-slate-100 pt-2.5 flex items-center justify-between text-xs font-bold text-slate-400">
                 <span>{isSelected ? '✓ Filtro activo' : 'Toca para filtrar'}</span>
-                {isSelected && <span className="text-primary font-bold">Mostrando</span>}
+                {isSelected && <span className="text-primary font-bold">Activo</span>}
               </div>
             </button>
           );
@@ -214,13 +214,13 @@ export function Seguimiento({ segs, parcels, recOf, go }) {
       {/* Barra de búsqueda y contador */}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="relative min-w-[260px] flex-1 sm:max-w-md">
-          <Icon n="search" s={15} cls="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Icon n="search" s={18} cls="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             aria-label="Buscar seguimiento"
             value={q}
             onChange={e => setQ(e.target.value)}
             placeholder="Buscar por cultivo o nombre de parcela..."
-            className="field !pl-9 text-xs"
+            className="field !pl-10 !py-3 text-sm font-medium"
           />
         </div>
 
@@ -228,12 +228,12 @@ export function Seguimiento({ segs, parcels, recOf, go }) {
           {f !== 'all' && (
             <button
               onClick={() => setF('all')}
-              className="text-xs font-semibold text-primary underline hover:text-ink"
+              className="text-sm font-bold text-primary underline hover:text-ink"
             >
               Quitar filtro ({SELECTIONS.find(x => x.id === f)?.title})
             </button>
           )}
-          <span className="text-xs font-semibold text-slate-500 bg-white px-3 py-1.5 rounded-full border border-slate-200">
+          <span className="text-sm font-bold text-slate-600 bg-white px-4 py-2 rounded-full border border-slate-200 shadow-2xs">
             {list.length} {list.length === 1 ? 'cultivo mostrado' : 'cultivos mostrados'}
           </span>
         </div>

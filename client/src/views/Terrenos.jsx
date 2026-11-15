@@ -34,11 +34,11 @@ export function ParcelCard({ p, go, i }) {
       </div>
 
       <div className="p-5">
-        <h3 className="font-display text-lg font-bold text-ink group-hover:text-primary transition-colors">
+        <h3 className="font-display text-xl font-bold text-ink group-hover:text-primary transition-colors">
           {p.name}
         </h3>
-        <p className="mt-1 flex items-center gap-1.5 text-sm font-medium text-slate-500">
-          <Icon n="pin" s={14} cls="text-rose-600 shrink-0" />
+        <p className="mt-1 flex items-center gap-1.5 text-base font-semibold text-slate-500">
+          <Icon n="pin" s={16} cls="text-rose-600 shrink-0" />
           <span>{p.loc}</span>
         </p>
 
@@ -49,24 +49,24 @@ export function ParcelCard({ p, go, i }) {
         </div>
 
         <div
-          className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3.5 text-sm font-bold text-slate-700"
+          className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3.5 text-base font-extrabold text-slate-800"
           style={{ fontVariantNumeric: 'tabular-nums' }}
         >
           <span className="flex items-center gap-1.5" title="Temperatura actual">
-            <Icon n="thermo" s={16} cls="text-orange-500" />
+            <Icon n="thermo" s={18} cls="text-orange-500" />
             {fmt(p.temp, 0)} °C
           </span>
           <span className="flex items-center gap-1.5" title="Humedad del suelo SMAP">
-            <Icon n="drop" s={16} cls="text-sky" />
+            <Icon n="drop" s={18} cls="text-sky" />
             {fmt(p.hum, 0)} %
           </span>
           <span className="flex items-center gap-1.5" title="Lluvia acumulada 7 días">
-            <Icon n="rain" s={16} cls="text-primary" />
+            <Icon n="rain" s={18} cls="text-primary" />
             {fmt(p.rain7, 0)} mm
           </span>
-          <span className="flex items-center gap-1 text-xs font-bold text-primary group-hover:translate-x-1 transition-transform">
+          <span className="flex items-center gap-1 text-sm font-bold text-primary group-hover:translate-x-1 transition-transform">
             Ver detalle
-            <Icon n="right" s={14} />
+            <Icon n="right" s={15} />
           </span>
         </div>
       </div>

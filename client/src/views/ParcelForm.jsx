@@ -274,14 +274,14 @@ export function ParcelForm({ initial, onSave, onCancel }) {
         {/* Columna Izquierda: Datos esenciales (Nombre y Tipo de suelo) */}
         <div className="card flex flex-col gap-6 p-6">
           <div>
-            <h2 className="font-display text-xl font-bold text-ink">Datos del terreno</h2>
-            <p className="mt-1 text-sm text-slate-500 font-medium">Solo necesitas el nombre y el tipo de suelo de tu predio.</p>
+            <h2 className="font-display text-2xl font-bold text-ink">Datos del terreno</h2>
+            <p className="mt-1 text-base text-slate-500 font-medium">Nombre de la parcela y textura del suelo.</p>
           </div>
 
           <L t="Nombre del terreno" err={err.name} id="f-name">
             <input
               id="f-name"
-              className={`field !py-3.5 !px-4 text-base font-medium ${err.name ? '!border-rose-400' : ''}`}
+              className={`field !py-3.5 !px-4 text-lg font-medium ${err.name ? '!border-rose-400' : ''}`}
               placeholder="Ej. Parcela Santa María"
               value={f.name}
               onChange={e => set('name', e.target.value)}
@@ -302,15 +302,15 @@ export function ParcelForm({ initial, onSave, onCancel }) {
           </L>
 
           {/* Tarjeta explicativa sobre Rotación y Recomendación IA */}
-          <div className="rounded-2xl border border-sky/20 bg-gradient-to-br from-sky/10 via-mint/10 to-transparent p-4 text-sm">
-            <div className="flex items-start gap-3">
-              <span className="grid h-8 w-8 place-items-center rounded-xl bg-sky/20 text-primary shrink-0">
-                <Icon n="sparkles" s={18} />
+          <div className="rounded-2xl border border-sky/20 bg-gradient-to-br from-sky/10 via-mint/10 to-transparent p-4.5">
+            <div className="flex items-start gap-3.5">
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-sky/20 text-primary shrink-0">
+                <Icon n="sparkles" s={20} />
               </span>
               <div>
-                <b className="block text-primary font-bold text-base">Rotación y Selección de Cultivo con IA</b>
-                <p className="mt-1.5 text-slate-600 leading-relaxed font-normal">
-                  No necesitas especificar cultivo ni tipo de riego. Al guardar la ubicación, nuestra IA evaluará la telemetría de la NASA (POWER y SMAP) junto con tu suelo para recomendarte la rotación de cultivo más conveniente y el manejo hídrico óptimo.
+                <b className="block text-primary font-bold text-lg">Rotación y Recomendación IA</b>
+                <p className="mt-1 text-base leading-relaxed text-slate-700 font-medium">
+                  El sistema evalúa el clima y la humedad de la NASA con tu suelo para recomendarte automáticamente la rotación ideal y el manejo hídrico óptimo.
                 </p>
               </div>
             </div>
@@ -318,16 +318,16 @@ export function ParcelForm({ initial, onSave, onCancel }) {
 
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm font-bold text-slate-800">Telemetría Agroclimática NASA</span>
-              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200">
-                <span className={`h-2 w-2 rounded-full ${nasaLoading ? 'bg-amber-400 animate-ping' : 'bg-emerald-500'}`} />
+              <span className="text-base font-bold text-slate-800">Telemetría Agroclimática NASA</span>
+              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-200">
+                <span className={`h-2.5 w-2.5 rounded-full ${nasaLoading ? 'bg-amber-400 animate-ping' : 'bg-emerald-500'}`} />
                 {nasaLoading ? 'Sincronizando…' : 'En vivo'}
               </span>
             </div>
 
-            <div className="rounded-2xl border border-sky/20 bg-gradient-to-br from-sky/10 via-mint/10 to-transparent p-4 shadow-sm">
+            <div className="rounded-2xl border border-sky/20 bg-gradient-to-br from-sky/10 via-mint/10 to-transparent p-5 shadow-sm">
               <div className="flex items-center gap-4">
-                <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-white font-display text-xl font-extrabold text-primary shadow">
+                <div className="grid h-18 w-18 shrink-0 place-items-center rounded-2xl bg-white font-display text-2xl font-black text-primary shadow">
                   {nasaLoading && currentTemp == null ? (
                     <span className="animate-pulse text-xs text-slate-400">...</span>
                   ) : (
@@ -335,40 +335,40 @@ export function ParcelForm({ initial, onSave, onCancel }) {
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <b className="block text-base font-bold text-ink leading-tight">
+                  <b className="block text-lg font-bold text-ink leading-tight">
                     {nasaLoading && !nasaClima ? 'Consultando satélites…' : currentClima}
                   </b>
-                  <span className="text-xs text-slate-500 font-medium">
+                  <span className="text-sm text-slate-500 font-semibold">
                     {currentElevation ? `${currentElevation} msnm · ` : ''}NASA POWER Climatology (T2M)
                   </span>
                 </div>
               </div>
 
               {/* Sub-métricas satelitales en vivo */}
-              <div className="mt-3.5 grid grid-cols-2 gap-2 border-t border-slate-200/60 pt-3 text-xs">
-                <div className="rounded-xl bg-white/80 p-2.5 backdrop-blur">
-                  <div className="flex items-center gap-1.5 font-bold text-slate-500">
-                    <Icon n="rain" s={14} cls="text-primary" />
+              <div className="mt-4 grid grid-cols-2 gap-2.5 border-t border-slate-200/60 pt-3.5">
+                <div className="rounded-xl bg-white/85 p-3 backdrop-blur shadow-2xs">
+                  <div className="flex items-center gap-1.5 font-bold text-sm text-slate-600">
+                    <Icon n="rain" s={15} cls="text-primary" />
                     <span>Lluvia mensual</span>
                   </div>
-                  <div className="mt-1 font-display text-sm font-extrabold text-slate-900">
+                  <div className="mt-1 font-display text-lg font-black text-slate-900">
                     {currentRain != null ? `${currentRain} mm` : '—'}
                   </div>
                 </div>
 
-                <div className="rounded-xl bg-white/80 p-2.5 backdrop-blur">
-                  <div className="flex items-center gap-1.5 font-bold text-slate-500">
-                    <Icon n="drop" s={14} cls="text-sky" />
+                <div className="rounded-xl bg-white/85 p-3 backdrop-blur shadow-2xs">
+                  <div className="flex items-center gap-1.5 font-bold text-sm text-slate-600">
+                    <Icon n="drop" s={15} cls="text-sky" />
                     <span>Humedad SMAP</span>
                   </div>
-                  <div className="mt-1 font-display text-sm font-extrabold text-slate-900">
+                  <div className="mt-1 font-display text-lg font-black text-slate-900">
                     {currentSmap != null ? `${currentSmap} %` : '—'}
                   </div>
                 </div>
               </div>
 
-              <div className="mt-2.5 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-                <span>🛰️ Fuente: NASA POWER & SMAP</span>
+              <div className="mt-3 flex items-center justify-between text-xs text-slate-500 font-bold">
+                <span>🛰️ NASA POWER & SMAP</span>
                 <span>Coord: {parseFloat(latS) ? parseFloat(latS).toFixed(2) : '--'}, {parseFloat(lngS) ? parseFloat(lngS).toFixed(2) : '--'}</span>
               </div>
             </div>
@@ -379,29 +379,29 @@ export function ParcelForm({ initial, onSave, onCancel }) {
         <div className="flex flex-col gap-6">
           <div className="card p-6">
             <div className="mb-4">
-              <h2 className="font-display text-xl font-bold flex items-center gap-2 text-ink">
-                <span className="grid h-8 w-8 place-items-center rounded-xl bg-rose-100 text-rose-600">
-                  <Icon n="pin" s={18} />
+              <h2 className="font-display text-2xl font-bold flex items-center gap-2 text-ink">
+                <span className="grid h-9 w-9 place-items-center rounded-xl bg-rose-100 text-rose-600">
+                  <Icon n="pin" s={20} />
                 </span>
                 Ubicación del terreno
               </h2>
-              <p className="mt-1 text-sm text-slate-600 font-medium">
-                Toca cualquier punto del mapa satelital o arrastra el icono de ubicación rojo para fijar las coordenadas exactas de tu predio.
+              <p className="mt-1 text-base text-slate-600 font-medium">
+                Toca cualquier punto del mapa satelital o arrastra el pin rojo para fijar tu predio.
               </p>
             </div>
 
             {/* Buscador de municipio/ejido con sincronización bidireccional */}
             <div className="mb-4">
               <div className="mb-1.5 flex items-center justify-between">
-                <label htmlFor="f-place" className="block text-sm font-bold text-slate-800">
+                <label htmlFor="f-place" className="block text-base font-bold text-slate-800">
                   Municipio, ejido o localidad
                 </label>
                 <button
                   type="button"
                   onClick={() => { setShowSearch(!showSearch); setSug(false); }}
-                  className="text-xs md:text-sm font-bold text-primary hover:underline"
+                  className="text-sm font-bold text-primary hover:underline"
                 >
-                  {showSearch ? 'Ocultar buscador (solo mapa)' : 'Mostrar buscador'}
+                  {showSearch ? 'Ocultar buscador' : 'Mostrar buscador'}
                 </button>
               </div>
 
@@ -409,10 +409,10 @@ export function ParcelForm({ initial, onSave, onCancel }) {
                 <div className="relative">
                   <div className="flex gap-2">
                     <div className="relative flex-1">
-                      <Icon n="search" s={16} cls="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <Icon n="search" s={18} cls="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                       <input
                         id="f-place"
-                        className="field !pl-10 !py-3 text-sm font-medium"
+                        className="field !pl-10 !py-3.5 text-base font-medium"
                         placeholder="Escribe municipio, estado o ejido (ej. Texcoco, Toluca, Celaya)..."
                         value={geoQuery}
                         autoComplete="off"
@@ -437,7 +437,7 @@ export function ParcelForm({ initial, onSave, onCancel }) {
                         <button
                           type="button"
                           onClick={() => { setGeoQuery(''); setGeoResults([]); setSug(false); }}
-                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-slate-400 hover:text-slate-600"
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-base text-slate-400 hover:text-slate-600"
                         >
                           ✕
                         </button>
@@ -447,7 +447,7 @@ export function ParcelForm({ initial, onSave, onCancel }) {
                       type="button"
                       onClick={handleSearchLocation}
                       disabled={geoLoading}
-                      className="rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white shadow transition-all hover:bg-primary/90 disabled:opacity-50"
+                      className="rounded-xl bg-primary px-6 py-3.5 text-base font-bold text-white shadow transition-all hover:bg-primary/90 disabled:opacity-50"
                     >
                       {geoLoading ? 'Buscando…' : 'Buscar'}
                     </button>
@@ -462,12 +462,12 @@ export function ParcelForm({ initial, onSave, onCancel }) {
                             type="button"
                             key={idx}
                             onClick={() => chooseGeoPlace(x)}
-                            className="flex w-full items-start gap-3 px-4 py-3 text-left border-b border-slate-100 last:border-b-0 hover:bg-sky/10 transition-colors"
+                            className="flex w-full items-start gap-3 px-4 py-3.5 text-left border-b border-slate-100 last:border-b-0 hover:bg-sky/10 transition-colors"
                           >
-                            <Icon n="pin" s={18} cls="text-rose-600 shrink-0 mt-0.5" />
+                            <Icon n="pin" s={20} cls="text-rose-600 shrink-0 mt-0.5" />
                             <div>
-                              <b className="block text-sm font-bold text-slate-900">{x.n}</b>
-                              <span className="text-xs text-slate-500 font-medium line-clamp-1">
+                              <b className="block text-base font-bold text-slate-900">{x.n}</b>
+                              <span className="text-sm text-slate-500 font-medium line-clamp-1">
                                 {x.full || `${x.lat.toFixed(4)}, ${x.lng.toFixed(4)}`}
                               </span>
                             </div>
@@ -482,8 +482,8 @@ export function ParcelForm({ initial, onSave, onCancel }) {
 
             {/* Controles de capa de mapa */}
             <div className="mb-3 flex items-center justify-between">
-              <span className="text-xs md:text-sm font-bold text-slate-600">
-                Vista del terreno
+              <span className="text-sm font-bold text-slate-700">
+                Capa del mapa
               </span>
               <div className="flex gap-1.5 rounded-xl bg-slate-100/90 p-1">
                 {[['Mapa', false], ['Satélite', true]].map(([l, v]) => (
@@ -491,7 +491,7 @@ export function ParcelForm({ initial, onSave, onCancel }) {
                     type="button"
                     key={l}
                     onClick={() => setSat(v)}
-                    className={`rounded-lg px-4 py-1.5 text-xs md:text-sm font-bold transition-all ${
+                    className={`rounded-lg px-4 py-1.5 text-sm font-bold transition-all ${
                       sat === v ? 'bg-white text-primary shadow' : 'text-slate-600'
                     }`}
                   >
@@ -516,18 +516,18 @@ export function ParcelForm({ initial, onSave, onCancel }) {
               <button
                 type="button"
                 onClick={handleUseMyLocation}
-                className="absolute bottom-3.5 right-3.5 z-[400] flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-xs md:text-sm font-bold text-primary shadow-xl backdrop-blur transition-all hover:scale-105 hover:bg-white"
+                className="absolute bottom-3.5 right-3.5 z-[400] flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-sm font-bold text-primary shadow-xl backdrop-blur transition-all hover:scale-105 hover:bg-white"
               >
-                <Icon n="cross" s={16} />
+                <Icon n="cross" s={18} />
                 Usar mi ubicación GPS
               </button>
 
-              <div className="pointer-events-none absolute left-3.5 top-3.5 z-[400] flex items-center gap-2.5 rounded-xl bg-slate-900/90 px-4 py-2 text-xs md:text-sm font-bold text-white shadow-xl backdrop-blur">
+              <div className="pointer-events-none absolute left-3.5 top-3.5 z-[400] flex items-center gap-2.5 rounded-xl bg-slate-900/90 px-4 py-2 text-sm font-bold text-white shadow-xl backdrop-blur">
                 <span className="relative flex h-3 w-3">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75"></span>
                   <span className="relative inline-flex h-3 w-3 rounded-full bg-rose-500"></span>
                 </span>
-                📍 Arrastra el icono de ubicación rojo o toca el mapa para fijar tu terreno
+                📍 Arrastra el pin rojo o toca el mapa para fijar tu terreno
               </div>
             </div>
 
@@ -535,7 +535,7 @@ export function ParcelForm({ initial, onSave, onCancel }) {
               <L t="Latitud (grados decimales)" id="f-lat">
                 <input
                   id="f-lat"
-                  className="field font-mono text-base font-bold !py-3 !px-4"
+                  className="field font-mono text-lg font-bold !py-3.5 !px-4"
                   value={latS}
                   onChange={e => { setLatS(e.target.value); onLL(e.target.value, lngS); }}
                 />
@@ -543,26 +543,21 @@ export function ParcelForm({ initial, onSave, onCancel }) {
               <L t="Longitud (grados decimales)" id="f-lng">
                 <input
                   id="f-lng"
-                  className="field font-mono text-base font-bold !py-3 !px-4"
+                  className="field font-mono text-lg font-bold !py-3.5 !px-4"
                   value={lngS}
                   onChange={e => { setLngS(e.target.value); onLL(latS, e.target.value); }}
                 />
               </L>
             </div>
             {err.ll && <p className="mt-1 text-sm font-bold text-rose-600">{err.ll}</p>}
-
-            <div className="mt-4 flex items-start gap-2.5 rounded-2xl bg-sky/10 p-3.5 text-sm text-primary font-medium">
-              <Icon n="globe" s={18} cls="mt-0.5 shrink-0" />
-              <span>Al tocar el mapa o mover el pin, se detecta automáticamente la localidad en el buscador y se consultarán los datos satelitales NASA POWER y SMAP.</span>
-            </div>
           </div>
 
           <div className="flex justify-end gap-3.5">
-            <Btn variant="ghost" onClick={onCancel} className="!text-sm md:!text-base !px-6 !py-3">
+            <Btn variant="ghost" onClick={onCancel} className="!text-base font-bold !px-7 !py-3.5">
               Cancelar
             </Btn>
-            <Btn type="submit" variant="primary" className="!text-sm md:!text-base !px-6 !py-3">
-              <Icon n="check" s={18} />
+            <Btn type="submit" variant="primary" className="!text-base font-bold !px-8 !py-3.5">
+              <Icon n="check" s={20} />
               {edit ? 'Guardar cambios' : 'Guardar terreno'}
             </Btn>
           </div>
