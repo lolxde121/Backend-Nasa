@@ -5,6 +5,7 @@ const fs = require('fs');
 require('dotenv').config();
 
 const db = require('./db/database');
+const authRouter = require('./routes/auth');
 const terrenosRouter = require('./routes/terrenos');
 const nasaRouter = require('./routes/nasa');
 const seguimientosRouter = require('./routes/seguimientos');
@@ -17,6 +18,7 @@ app.use(cors());
 app.use(express.json());
 
 // API Routes
+app.use('/api/auth', authRouter);
 app.use('/api/terrenos', terrenosRouter);
 app.use('/api/nasa', nasaRouter);
 app.use('/api/seguimientos', seguimientosRouter);

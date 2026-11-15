@@ -18,12 +18,40 @@ import { SegDetail } from './views/SegDetail';
 import { SegForm } from './views/SegForm';
 import { Seguimiento } from './views/Seguimiento';
 import { Terrenos } from './views/Terrenos';
+import { LoginView } from './views/LoginView';
 
 export default function App() {
+  const [authToken, setAuthToken] = useState(() => {
+    return typeof window !== 'undefined' ? localStorage.getItem('agromonitor_token') : null;
+  });
+  const [currentUser, setCurrentUser] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    const saved = localStorage.getItem('agromonitor_user');
+    try { return saved ? JSON.parse(saved) : null; } catch (e) { return null; }
+  });
+  const [isGuest, setIsGuest] = useState(false);
+
+  const handleLoginSuccess = (user, token) => {
+    localStorage.setItem('agromonitor_token', token);
+    localStorage.setItem('agromonitor_user', JSON.stringify(user));
+    setAuthToken(token);
+    setCurrentUser(user);
+    setFinca(user.finca_nombre || FINCAS[0]);
+  };
+
+  const handleLogout = async () => {
+    try { if (authToken) await api.logout(authToken); } catch (_) {}
+    localStorage.removeItem('agromonitor_token');
+    localStorage.removeItem('agromonitor_user');
+    setAuthToken(null);
+    setCurrentUser(null);
+    setIsGuest(false);
+  };
+
   const [parcels, setParcels] = useState(INITIAL);
   const [view, setView] = useState({ name: 'terrenos', id: null });
   const [query, setQuery] = useState('');
-  const [finca, setFinca] = useState(FINCAS[0]);
+  const [finca, setFinca] = useState(() => currentUser?.finca_nombre || FINCAS[0]);
   const [cfgs, setCfgs] = useState({});
   const [recPid, setRecPid] = useState(INITIAL[0].id);
   const [readIds, setReadIds] = useState({});
@@ -241,6 +269,14 @@ export default function App() {
     : view.name;
 
   return (
+    <>
+      {(!authToken && !isGuest) && (
+        <LoginView
+          onLoginSuccess={handleLoginSuccess}
+          onContinueAsGuest={() => setIsGuest(true)}
+        />
+      )}
+      {(authToken || isGuest) && (
     <div className="flex h-full">
       <Sidebar
         active={activeNav}
@@ -249,6 +285,8 @@ export default function App() {
         setCollapsed={setCollapsed}
         finca={finca}
         setFinca={(f) => { setFinca(f); notify(`Finca activa: ${f}`); }}
+        currentUser={currentUser}
+        onLogout={handleLogout}
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <Header
@@ -259,6 +297,8 @@ export default function App() {
           notifs={notifs}
           markRead={markRead}
           go={go}
+          currentUser={currentUser}
+          onLogout={handleLogout}
         />
         <main ref={mainRef} className="flex-1 overflow-y-auto px-4 py-6 pb-24 md:px-8 md:pb-10">
           <div className="mx-auto max-w-[1280px]" key={view.name + (view.id || '')}>
@@ -338,5 +378,7 @@ export default function App() {
         </div>
       )}
     </div>
+      )}
+    </>
   );
 }

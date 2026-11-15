@@ -87,7 +87,30 @@ function initDatabase() {
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (terreno_id) REFERENCES terrenos(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS usuarios (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nombre TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      salt TEXT NOT NULL,
+      rol TEXT DEFAULT 'agricultor',
+      avatar_url TEXT,
+      finca_nombre TEXT DEFAULT 'Finca Santa María',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS sesiones (
+      token TEXT PRIMARY KEY,
+      usuario_id INTEGER NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      expires_at DATETIME,
+      FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+    );
   `);
+
+  seedUsuarios();
 
   // Reset or initialize seed data to match AgroMonitor Figma design
   const countStmt = db.prepare('SELECT COUNT(*) as count FROM terrenos');
@@ -371,7 +394,42 @@ function seedFigmaTerrenos() {
   console.log('✅ 4 terrenos del diseño AgroMonitor inicializados.');
 }
 
+function hashPassword(password, salt) {
+  const crypto = require('crypto');
+  return crypto.scryptSync(password, salt, 64).toString('hex');
+}
+
+function seedUsuarios() {
+  const crypto = require('crypto');
+  try {
+    const countUsers = db.prepare('SELECT COUNT(*) as count FROM usuarios').get();
+    if (countUsers.count === 0) {
+      console.log('👤 Creando usuarios iniciales del sistema...');
+      const insertUser = db.prepare(`
+        INSERT INTO usuarios (nombre, email, password_hash, salt, rol, finca_nombre)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `);
+
+      // Usuario 1: Cristopher Méndez
+      const salt1 = crypto.randomBytes(16).toString('hex');
+      const hash1 = hashPassword('password123', salt1);
+      insertUser.run('Cristopher Méndez', 'cristopher@agromonitor.com', hash1, salt1, 'Administrador Agrícola', 'Finca Santa María');
+
+      // Usuario 2: Demo agricultor
+      const salt2 = crypto.randomBytes(16).toString('hex');
+      const hash2 = hashPassword('demo123', salt2);
+      insertUser.run('Agricultor Demo', 'demo@agromonitor.com', hash2, salt2, 'Agricultor', 'Parcelas del Valle');
+
+      console.log('✅ Usuarios iniciales creados.');
+    }
+  } catch (err) {
+    console.warn('Advertencia al inicializar usuarios:', err.message);
+  }
+}
+
 initDatabase();
 
 db.seedFigmaTerrenos = seedFigmaTerrenos;
+db.seedUsuarios = seedUsuarios;
+db.hashPassword = hashPassword;
 module.exports = db;

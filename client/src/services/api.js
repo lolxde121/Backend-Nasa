@@ -97,5 +97,55 @@ export const api = {
     });
     if (!res.ok) throw new Error(`Error al eliminar seguimiento #${id}`);
     return res.json();
+  },
+
+  // Autenticación de usuarios
+  async login(email, password) {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error || 'Error al iniciar sesión');
+    }
+    return data;
+  },
+
+  async register(nombre, email, password, finca_nombre) {
+    const res = await fetch(`${API_BASE}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre, email, password, finca_nombre })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error || 'Error al registrar la cuenta');
+    }
+    return data;
+  },
+
+  async getMe(token) {
+    const res = await fetch(`${API_BASE}/auth/me`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (!res.ok) throw new Error('Sesión inválida o expirada');
+    return res.json();
+  },
+
+  async logout(token) {
+    try {
+      await fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+    } catch (e) {
+      // Ignorar error al cerrar sesión
+    }
   }
 };
