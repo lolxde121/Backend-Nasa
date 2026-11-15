@@ -49,12 +49,19 @@ export function enrich(p) {
     const d = new Date(2026, 10, 15 + i);
     return { day: d.toLocaleDateString('es-MX', { weekday: 'short' }).replace('.', ''), num: d.getDate(), hi: Math.round(p.temp + 2 + r() * 4), lo: Math.round(p.temp - 9 + r() * 3), rain: Math.round(r() * 80) };
   });
+  const rain30Val = p.rain30 != null
+    ? Number(p.rain30)
+    : (p.resumen_satelital?.precipitacion != null
+      ? Number(p.resumen_satelital.precipitacion)
+      : +daily.reduce((a, d) => a + d.rain, 0).toFixed(1));
+  const rain7Val = +( (rain30Val > 0 ? rain30Val * 0.23 : daily.slice(-7).reduce((a, d) => a + d.rain, 0)) ).toFixed(1);
+
   return {
     ...p, daily, hourly, forecast,
     center: p.center || { lat: p.lat, lng: p.lng }, pin: p.pin || { x: 300, y: 180 },
     poly: p.poly || genPoly(seedNum),
-    rain30: +daily.reduce((a, d) => a + d.rain, 0).toFixed(1),
-    rain7: +daily.slice(-7).reduce((a, d) => a + d.rain, 0).toFixed(1),
+    rain30: rain30Val,
+    rain7: rain7Val,
     dTemp: +(p.temp - daily[28].temp).toFixed(1),
   };
 }
@@ -65,8 +72,12 @@ export function formatTerrenoToParcel(t) {
 
   const lat = Number(t.latitud ?? t.lat ?? 19.5124);
   const lng = Number(t.longitud ?? t.lng ?? -98.8828);
-  const temp = Number(t.resumen_satelital?.temperatura ?? t.temp ?? 24.3);
-  const hum = Number(t.resumen_satelital?.humedad_smap ?? t.hum ?? 31.0);
+  const temp = Number(t.resumen_satelital?.temperatura ?? t.temp ?? 20.0);
+  const hum = Number(t.resumen_satelital?.humedad_smap ?? t.hum ?? 35.0);
+  const rain30 = t.resumen_satelital?.precipitacion != null
+    ? Number(t.resumen_satelital.precipitacion)
+    : (t.rain30 != null ? Number(t.rain30) : undefined);
+  const clima = t.resumen_satelital?.clima_clasificacion || t.clima_zona || t.clima || 'Templado';
   const idStr = t.id != null ? String(t.id) : ('p' + Date.now());
   const numId = typeof t.id === 'number' ? t.id : parseInt(String(t.id).replace(/\D/g, ''), 10) || 11;
   const seed = (numId * 17 + 13) % 97;
@@ -84,10 +95,11 @@ export function formatTerrenoToParcel(t) {
     area: Number(t.area_hectareas ?? t.area ?? 5.0),
     crop: t.cultivo_actual || t.crop || 'Maíz',
     soil: t.tipo_suelo || t.soil || 'Franco-arcillosa',
-    irrigation: t.fuente_agua || t.irrigation || 'Goteo',
-    clima: t.clima_zona || t.clima || 'Templado',
+    irrigation: t.fuente_agua || t.irrigation || 'Temporal',
+    clima,
     temp,
     hum,
+    rain30,
     ndvi: t.resumen_satelital?.ndvi ?? 0.65,
     resumen_satelital: t.resumen_satelital || null,
     poligono: t.poligono || null,

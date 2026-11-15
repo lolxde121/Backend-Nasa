@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Icon } from '../components/Icon';
 import { Kpi } from '../components/Kpi';
 import { MapView } from '../components/MapView';
@@ -7,6 +7,7 @@ import { Btn, Chip, StatusBadge } from '../components/ui';
 import { METRICS, PRIO, alertsFor, recsFor } from '../data/parcels';
 import { TODAY_ISO, dLong, daysBetween } from '../lib/dates';
 import { fmt, statusOf } from '../lib/utils';
+import { api } from '../services/api';
 import { Terrenos } from './Terrenos';
 
 export function Row({ l, k, min, max, step, u, c, setC }) { return <div><div className="mb-1 flex justify-between text-sm"><label htmlFor={'a-' + k} className="font-semibold">{l}</label><b className="text-primary" style={{ fontVariantNumeric: 'tabular-nums' }}>{c[k]} {u}</b></div>
@@ -32,43 +33,92 @@ export function AlertsModal({ p, cfg, onSave, onClose }) {
 export function Detail({ p, go, cfg, setCfg, notify, segs, onDelete }) {
   const [layer, setLayer] = useState('sat');
   const [modal, setModal] = useState(false);
-  const st = statusOf(p);
-  const al = alertsFor(p, cfg), recs = recsFor(p);
+  const [liveNasa, setLiveNasa] = useState(p.resumen_satelital || null);
+  const [loadingNasa, setLoadingNasa] = useState(false);
+
+  useEffect(() => {
+    const targetId = p.dbId || p.id;
+    if (targetId && !isNaN(Number(targetId))) {
+      setLoadingNasa(true);
+      api.getTerrenoNasaData(targetId)
+        .then(res => {
+          if (res?.data) {
+            const d = res.data;
+            setLiveNasa({
+              temperatura: d.clima?.temperatura_actual_promedio_c,
+              precipitacion: d.clima?.precipitacion_mes_actual_mm,
+              humedad_smap: d.smap?.humedad_superficie_porcentaje,
+              ndvi: d.modis?.ndvi_actual,
+              calidad_vegetacion: d.modis?.clasificacion_vigor,
+              condicion_hidrica: d.smap?.condicion_humedad,
+              fuente: d.metadata?.fuente,
+              elevacion: d.metadata?.elevacion_msnm,
+              clima_clasificacion: d.clima?.clima_clasificacion
+            });
+          }
+        })
+        .catch(err => {
+          console.warn('No se pudo refrescar telemetría NASA:', err.message);
+        })
+        .finally(() => setLoadingNasa(false));
+    }
+  }, [p.id, p.dbId]);
+
+  const activeParcel = {
+    ...p,
+    temp: liveNasa?.temperatura != null ? liveNasa.temperatura : p.temp,
+    hum: liveNasa?.humedad_smap != null ? liveNasa.humedad_smap : p.hum,
+    rain30: liveNasa?.precipitacion != null ? liveNasa.precipitacion : p.rain30,
+    ndvi: liveNasa?.ndvi != null ? liveNasa.ndvi : p.ndvi,
+    clima: liveNasa?.clima_clasificacion || p.clima,
+    elevacion: liveNasa?.elevacion || p.resumen_satelital?.elevacion,
+    fuente: liveNasa?.fuente || p.resumen_satelital?.fuente || 'NASA POWER API (Live Satellite Climatology)'
+  };
+
+  const st = statusOf(activeParcel);
+  const al = alertsFor(activeParcel, cfg), recs = recsFor(activeParcel);
   const copy = async () => {
-    const txt = `${p.name} (${p.loc}) · ${fmt(p.area)} ha · ${p.crop}\nTemp ${fmt(p.temp)} °C · Humedad ${fmt(p.hum, 0)} % · Lluvia 30 d ${fmt(p.rain30)} mm\nEstado: ${st}`;
+    const txt = `${activeParcel.name} (${activeParcel.loc}) · ${fmt(activeParcel.area)} ha · ${activeParcel.crop}\nTemp ${fmt(activeParcel.temp)} °C · Humedad ${fmt(activeParcel.hum, 0)} % · Lluvia 30 d ${fmt(activeParcel.rain30)} mm\nEstado: ${st}`;
     try { await navigator.clipboard.writeText(txt); notify('Resumen del reporte copiado al portapapeles'); } catch (e) { notify('No se pudo copiar. Selecciona el texto manualmente.'); }
   };
-  const info = [['pin', 'Ubicación', p.place || p.loc], ['map', 'Coordenadas', `${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}`], ['layers', 'Tipo de tierra', p.soil], ['leaf', 'Cultivo', p.crop], ['drop', 'Sistema de riego', p.irrigation], ['thermo', 'Clima promedio', p.clima]];
+  const info = [
+    ['pin', 'Ubicación', activeParcel.place || activeParcel.loc],
+    ['map', 'Coordenadas', `${activeParcel.lat.toFixed(4)}, ${activeParcel.lng.toFixed(4)}`],
+    ['layers', 'Tipo de tierra', activeParcel.soil],
+    ['leaf', 'Cultivo', activeParcel.crop],
+    ['drop', 'Sistema de riego', activeParcel.irrigation],
+    ['thermo', 'Clima promedio', activeParcel.clima]
+  ];
   return (
     <div className="fade-in">
-      <button onClick={() => go('terrenos')} className="mb-3 flex items-center gap-1.5 text-xs font-semibold text-slate-500 transition-colors hover:text-primary"><Icon n="back" s={14} />Terrenos / {p.name}</button>
+      <button onClick={() => go('terrenos')} className="mb-3 flex items-center gap-1.5 text-xs font-semibold text-slate-500 transition-colors hover:text-primary"><Icon n="back" s={14} />Terrenos / {activeParcel.name}</button>
       <div className="card mb-5 flex flex-wrap items-center justify-between gap-4 p-5">
         <div>
-          <div className="flex flex-wrap items-center gap-3"><h1 className="font-display text-2xl font-bold tracking-tight md:text-3xl">{p.name}</h1><StatusBadge status={st} /></div>
-          <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500"><span className="flex items-center gap-1"><Icon n="pin" s={14} />{p.place || p.loc}</span><span>Actualizado hoy, 6:00 p. m.</span></p>
-          <div className="mt-3 flex flex-wrap gap-2"><Chip>{fmt(p.area)} ha</Chip><Chip tone="mint">{p.crop}</Chip><Chip tone="slate" icon="drop">{p.irrigation}</Chip>{al.length > 0 && <Chip tone="slate" icon="warn">{al.length} {al.length === 1 ? 'alerta' : 'alertas'}</Chip>}</div>
+          <div className="flex flex-wrap items-center gap-3"><h1 className="font-display text-2xl font-bold tracking-tight md:text-3xl">{activeParcel.name}</h1><StatusBadge status={st} /></div>
+          <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500"><span className="flex items-center gap-1"><Icon n="pin" s={14} />{activeParcel.place || activeParcel.loc}</span><span>Actualizado hoy, 6:00 p. m.</span></p>
+          <div className="mt-3 flex flex-wrap gap-2"><Chip>{fmt(activeParcel.area)} ha</Chip><Chip tone="mint">{activeParcel.crop}</Chip><Chip tone="slate" icon="drop">{activeParcel.irrigation}</Chip>{al.length > 0 && <Chip tone="slate" icon="warn">{al.length} {al.length === 1 ? 'alerta' : 'alertas'}</Chip>}</div>
         </div>
         <div className="flex flex-wrap gap-2">
           <Btn variant="ghost" icon="download" onClick={copy}>Exportar reporte</Btn>
           <Btn variant="ghost" icon="bell" onClick={() => setModal(true)}>Ajustar alertas</Btn>
           {onDelete && (
             <Btn variant="ghost" className="!text-rose-600 hover:!border-rose-200 hover:!bg-rose-50" icon="trash" onClick={() => {
-              if (window.confirm(`¿Estás seguro de que deseas eliminar la parcela "${p.name}"?`)) {
-                onDelete(p.dbId || p.id);
+              if (window.confirm(`¿Estás seguro de que deseas eliminar la parcela "${activeParcel.name}"?`)) {
+                onDelete(activeParcel.dbId || activeParcel.id);
               }
             }}>Eliminar</Btn>
           )}
-          <Btn variant="primary" icon="pencil" onClick={() => go('form', p.id)}>Editar terreno</Btn>
+          <Btn variant="primary" icon="pencil" onClick={() => go('form', activeParcel.id)}>Editar terreno</Btn>
         </div>
       </div>
 
-      <DetailBody p={p} layer={layer} setLayer={setLayer} info={info} al={al} recs={recs} segs={segs} go={go} />
-      {modal && <AlertsModal p={p} cfg={cfg} onClose={() => setModal(false)} onSave={(c) => { setCfg(c); setModal(false); notify('Alertas actualizadas'); }} />}
+      <DetailBody p={activeParcel} loadingNasa={loadingNasa} layer={layer} setLayer={setLayer} info={info} al={al} recs={recs} segs={segs} go={go} />
+      {modal && <AlertsModal p={activeParcel} cfg={cfg} onClose={() => setModal(false)} onSave={(c) => { setCfg(c); setModal(false); notify('Alertas actualizadas'); }} />}
     </div>
   );
 }
 
-export function DetailBody({ p, layer, setLayer, info, al, recs, segs, go }) {
+export function DetailBody({ p, loadingNasa, layer, setLayer, info, al, recs, segs, go }) {
   const [metric, setMetric] = useState('temp');
   const last7 = p.daily.slice(-7);
   const lw = (segs || []).filter(s => s.pid === p.id).sort((a, b) => b.lastWater.localeCompare(a.lastWater))[0];
@@ -143,20 +193,32 @@ export function DetailBody({ p, layer, setLayer, info, al, recs, segs, go }) {
         <div className="card p-5">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-display text-lg font-bold text-ink">Telemetría Satelital NASA</h2>
-            <span className="rounded-full bg-mint/15 px-3 py-1 text-xs font-bold text-teal-700">En vivo</span>
+            <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-200">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              {loadingNasa ? 'Sincronizando…' : 'En vivo'}
+            </span>
           </div>
           <div className="flex flex-col gap-2.5 text-sm">
             <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3">
-              <span className="font-medium text-slate-600">Misión NASA POWER</span>
-              <span className="font-bold text-primary">T2M · {fmt(p.temp)} °C</span>
+              <span className="font-medium text-slate-600">Misión NASA POWER (T2M)</span>
+              <span className="font-bold text-primary">{fmt(p.temp)} °C</span>
             </div>
             <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3">
-              <span className="font-medium text-slate-600">Sensor NASA SMAP L3/L4</span>
+              <span className="font-medium text-slate-600">Sensor NASA SMAP L3/L4 (0–5 cm)</span>
               <span className="font-bold text-sky">{fmt(p.hum, 0)} % Humedad Suelo</span>
             </div>
             <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3">
               <span className="font-medium text-slate-600">Satélite MODIS NDVI 250m</span>
-              <span className="font-bold text-teal-600">{p.ndvi ? fmt(p.ndvi, 2) : '0.68'} Vigor Vegetal</span>
+              <span className="font-bold text-teal-600">{fmt(p.ndvi, 2)} Vigor Vegetal</span>
+            </div>
+            {p.elevacion && (
+              <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3">
+                <span className="font-medium text-slate-600">Elevación del predio</span>
+                <span className="font-bold text-slate-700">{p.elevacion} msnm</span>
+              </div>
+            )}
+            <div className="pt-1 text-[11px] text-slate-400 text-right">
+              🛰️ {p.fuente || 'NASA POWER Climatology & SMAP'}
             </div>
           </div>
         </div>

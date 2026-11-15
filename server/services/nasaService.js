@@ -104,6 +104,20 @@ async function fetchAgroClimaticData(lat, lon, terrenoId = null, tipoSuelo = 'Fr
     currentMonth
   });
 
+  // Clasificación agroclimática real basada en datos de temperatura y lluvia de la NASA
+  let climaClasificacion = 'Templado';
+  if (currentTemp > 25 && currentRainMonthly < 40) {
+    climaClasificacion = 'Cálido seco / Árido';
+  } else if (currentTemp > 22 && currentRainMonthly >= 50) {
+    climaClasificacion = 'Cálido húmedo';
+  } else if (currentTemp >= 18 && currentTemp <= 22) {
+    climaClasificacion = 'Templado subhúmedo';
+  } else if (currentTemp >= 12 && currentTemp < 18) {
+    climaClasificacion = 'Templado frío';
+  } else if (currentTemp < 12) {
+    climaClasificacion = 'Frío de montaña / Valle alto';
+  }
+
   const payload = {
     metadata: {
       fuente: sourceStatus === 'NASA_LIVE' ? 'NASA POWER API (Live Satellite Climatology)' : 'NASA Calibrated Agro-Model (Offline Backup)',
@@ -116,6 +130,7 @@ async function fetchAgroClimaticData(lat, lon, terrenoId = null, tipoSuelo = 'Fr
     clima: {
       temperatura_actual_promedio_c: parseFloat(currentTemp.toFixed(1)),
       temperatura_anual_promedio_c: parseFloat(annualTemp.toFixed(1)),
+      clima_clasificacion: climaClasificacion,
       temperatura_mensual: t2mMonths,
       precipitacion_mes_actual_mm: currentRainMonthly,
       precipitacion_diaria_promedio_mm: parseFloat(currentRainDaily.toFixed(2)),

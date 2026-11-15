@@ -4,17 +4,29 @@ const db = require('../db/database');
 const { fetchAgroClimaticData } = require('../services/nasaService');
 const { evaluateCropRecommendations } = require('../services/recommendationService');
 
-// GET /api/terrenos - Lista todos los terrenos
+// GET /api/terrenos - Lista todos los terrenos con telemetría satelital NASA
 router.get('/', async (req, res) => {
   try {
     const stmt = db.prepare('SELECT * FROM terrenos ORDER BY id DESC');
     const terrenos = stmt.all();
 
-    // Enriquecer cada terreno con su última métrica satelital si existe
+    // Enriquecer cada terreno con su última métrica satelital real de la NASA
     const cacheStmt = db.prepare('SELECT * FROM metricas_satelitales_cache WHERE terreno_id = ? ORDER BY updated_at DESC LIMIT 1');
     
-    const enriched = terrenos.map(t => {
-      const metric = cacheStmt.get(t.id);
+    const enriched = await Promise.all(terrenos.map(async (t) => {
+      let metric = cacheStmt.get(t.id);
+      if (!metric) {
+        try {
+          await fetchAgroClimaticData(t.latitud, t.longitud, t.id, t.tipo_suelo);
+          metric = cacheStmt.get(t.id);
+        } catch (e) {
+          // Ignorar si falla la llamada puntual
+        }
+      }
+      let fullData = null;
+      if (metric?.datos_completos_json) {
+        try { fullData = JSON.parse(metric.datos_completos_json); } catch (e) {}
+      }
       return {
         ...t,
         poligono: t.poligono_geojson ? JSON.parse(t.poligono_geojson) : null,
@@ -25,10 +37,13 @@ router.get('/', async (req, res) => {
           ndvi: metric.indice_vegetacion_ndvi,
           calidad_vegetacion: metric.calidad_vegetacion,
           condicion_hidrica: metric.condicion_hidrica,
+          fuente: metric.fuente,
+          elevacion: fullData?.metadata?.elevacion_msnm || null,
+          clima_clasificacion: fullData?.clima?.clima_clasificacion || t.clima_zona || 'Templado',
           updated_at: metric.updated_at
         } : null
       };
-    });
+    }));
 
     res.json({
       success: true,
@@ -121,20 +136,39 @@ router.post('/', async (req, res) => {
 
     const newId = result.lastInsertRowid;
 
-    // Obtener y cachear automáticamente métricas de la NASA para este nuevo terreno
-    fetchAgroClimaticData(parseFloat(latitud), parseFloat(longitud), newId, tipo_suelo)
-      .catch(err => console.warn('Consulta en background a NASA falló:', err.message));
+    // Obtener y cachear métricas reales de la NASA para este nuevo terreno
+    let agroData = null;
+    try {
+      agroData = await fetchAgroClimaticData(parseFloat(latitud), parseFloat(longitud), newId, tipo_suelo);
+      if (agroData && agroData.clima) {
+        const realClima = agroData.clima.clima_clasificacion || clima_zona || 'Templado';
+        db.prepare('UPDATE terrenos SET clima_zona = ? WHERE id = ?').run(realClima, newId);
+      }
+    } catch (err) {
+      console.warn('Consulta a NASA durante registro:', err.message);
+    }
 
     res.status(201).json({
       success: true,
-      message: 'Terreno registrado exitosamente',
+      message: 'Terreno registrado exitosamente con telemetría NASA en vivo',
       data: {
         id: newId,
         nombre,
-        propietario,
+        propietario: finalPropietario,
         latitud: parseFloat(latitud),
         longitud: parseFloat(longitud),
-        area_hectareas: parseFloat(area_hectareas)
+        area_hectareas: finalArea,
+        tipo_suelo,
+        clima_zona: agroData?.clima?.clima_clasificacion || clima_zona || 'Templado',
+        resumen_satelital: agroData ? {
+          temperatura: agroData.clima.temperatura_actual_promedio_c,
+          precipitacion: agroData.clima.precipitacion_mes_actual_mm,
+          humedad_smap: agroData.smap.humedad_superficie_porcentaje,
+          ndvi: agroData.modis.ndvi_actual,
+          calidad_vegetacion: agroData.modis.clasificacion_vigor,
+          condicion_hidrica: agroData.smap.condicion_humedad,
+          fuente: agroData.metadata.fuente
+        } : null
       }
     });
   } catch (error) {

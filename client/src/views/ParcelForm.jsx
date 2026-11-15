@@ -1,9 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Icon } from '../components/Icon';
 import { MapView } from '../components/MapView';
 import { Btn, ChipGroup, L, PageTitle } from '../components/ui';
 import { PLACES, SOILS } from '../data/parcels';
 import { fmt } from '../lib/utils';
+import { api } from '../services/api';
 
 function formatAddress(data) {
   if (!data || !data.address) return data?.name || data?.display_name || '';
@@ -37,16 +38,53 @@ export function ParcelForm({ initial, onSave, onCancel }) {
   const [geoResults, setGeoResults] = useState([]);
   const [showSearch, setShowSearch] = useState(true);
 
+  // Telemetría satelital en vivo de la NASA (POWER y SMAP)
+  const [nasaClima, setNasaClima] = useState(null);
+  const [nasaLoading, setNasaLoading] = useState(false);
   const reverseTimeoutRef = useRef(null);
+  const nasaTimeoutRef = useRef(null);
 
   const set = (k, v) => setF(s => ({ ...s, [k]: v }));
-  const place = PLACES.find(x => x.n === f.place) || {
-    n: f.place,
-    lat: parseFloat(latS) || 19.5124,
-    lng: parseFloat(lngS) || -98.8828,
-    clima: 'Templado',
-    t: 21
-  };
+
+  // Consulta en vivo a la NASA POWER & SMAP con debounce
+  const fetchNasaLive = useCallback((latVal, lngVal, soilVal) => {
+    const la = parseFloat(latVal);
+    const lo = parseFloat(lngVal);
+    if (isNaN(la) || isNaN(lo)) return;
+
+    if (nasaTimeoutRef.current) {
+      clearTimeout(nasaTimeoutRef.current);
+    }
+
+    setNasaLoading(true);
+    nasaTimeoutRef.current = setTimeout(async () => {
+      try {
+        const soilType = soilVal === 'Otro' ? 'Franco' : (soilVal || 'Franco-arcillosa');
+        const res = await api.getClimaPuntual(la, lo, soilType);
+        if (res && res.data) {
+          setNasaClima(res.data);
+        }
+      } catch (e) {
+        console.warn('Consulta a NASA POWER puntual falló:', e);
+      } finally {
+        setNasaLoading(false);
+      }
+    }, 380); // 380ms debounce
+  }, []);
+
+  // Sincronizar telemetría de la NASA cuando cambian las coordenadas o el suelo
+  useEffect(() => {
+    fetchNasaLive(latS, lngS, f.soil);
+    return () => {
+      if (nasaTimeoutRef.current) clearTimeout(nasaTimeoutRef.current);
+    };
+  }, [latS, lngS, f.soil, fetchNasaLive]);
+
+  const currentTemp = nasaClima?.clima?.temperatura_actual_promedio_c ?? null;
+  const currentClima = nasaClima?.clima?.clima_clasificacion ?? (nasaLoading ? 'Consultando satélites NASA…' : 'Templado');
+  const currentRain = nasaClima?.clima?.precipitacion_mes_actual_mm ?? null;
+  const currentSmap = nasaClima?.smap?.humedad_superficie_porcentaje ?? null;
+  const currentElevation = nasaClima?.metadata?.elevacion_msnm ?? null;
 
   // Reverse geocoding: al tocar o arrastrar el icono, actualizar el buscador con la localidad real
   const reverseGeocode = (latitude, longitude) => {
@@ -174,19 +212,37 @@ export function ParcelForm({ initial, onSave, onCancel }) {
     const soil = f.soil === 'Otro' ? (f.soilOther.trim() || 'Otro') : f.soil;
     const finalArea = initial?.area ? initial.area : 5.0;
 
+    const realClima = (currentClima && !currentClima.includes('Consultando') && currentClima !== 'Templado')
+      ? currentClima
+      : (nasaClima?.clima?.clima_clasificacion || initial?.clima || 'Templado');
+
     onSave({
-      ...(initial || { id: 'p' + Date.now(), seed: Math.floor(Math.random() * 90) + 5, temp: place.t + 3, hum: 33 }),
+      ...(initial || { id: 'p' + Date.now(), seed: Math.floor(Math.random() * 90) + 5 }),
       dbId: initial?.dbId || (typeof initial?.id === 'number' ? initial.id : null),
       name: f.name.trim(),
       crop: initial?.crop || 'Por definir (Ver recomendaciones)',
       soil,
       irrigation: initial?.irrigation || 'Temporal',
       area: finalArea,
-      place: f.place || place.n,
-      loc: (f.place || place.n).replace('Estado de México', 'Edo. Méx.'),
+      place: f.place || (geoQuery.trim() || 'Ubicación seleccionada'),
+      loc: (f.place || geoQuery.trim() || 'Ubicación seleccionada').replace('Estado de México', 'Edo. Méx.'),
       lat: parseFloat(latS),
       lng: parseFloat(lngS),
-      clima: place.clima || 'Templado',
+      clima: realClima,
+      temp: currentTemp != null ? currentTemp : (initial?.temp || 20.0),
+      hum: currentSmap != null ? currentSmap : (initial?.hum || 35.0),
+      rain30: currentRain != null ? currentRain : (initial?.rain30 || 25.0),
+      resumen_satelital: nasaClima ? {
+        temperatura: nasaClima.clima?.temperatura_actual_promedio_c,
+        precipitacion: nasaClima.clima?.precipitacion_mes_actual_mm,
+        humedad_smap: nasaClima.smap?.humedad_superficie_porcentaje,
+        ndvi: nasaClima.modis?.ndvi_actual,
+        calidad_vegetacion: nasaClima.modis?.clasificacion_vigor,
+        condicion_hidrica: nasaClima.smap?.condicion_humedad,
+        elevacion: nasaClima.metadata?.elevacion_msnm,
+        clima_clasificacion: nasaClima.clima?.clima_clasificacion,
+        fuente: nasaClima.metadata?.fuente
+      } : null,
       center,
       poly: null,
     });
@@ -261,14 +317,59 @@ export function ParcelForm({ initial, onSave, onCancel }) {
           </div>
 
           <div>
-            <div className="mb-2 text-sm font-bold text-slate-800">Clima promedio de la zona</div>
-            <div className="flex items-center gap-3.5 rounded-2xl bg-gradient-to-r from-sky/10 to-mint/10 p-4">
-              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-white font-display text-lg font-extrabold text-primary shadow">
-                {place.t}°
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-bold text-slate-800">Telemetría Agroclimática NASA</span>
+              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200">
+                <span className={`h-2 w-2 rounded-full ${nasaLoading ? 'bg-amber-400 animate-ping' : 'bg-emerald-500'}`} />
+                {nasaLoading ? 'Sincronizando…' : 'En vivo'}
+              </span>
+            </div>
+
+            <div className="rounded-2xl border border-sky/20 bg-gradient-to-br from-sky/10 via-mint/10 to-transparent p-4 shadow-sm">
+              <div className="flex items-center gap-4">
+                <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-white font-display text-xl font-extrabold text-primary shadow">
+                  {nasaLoading && currentTemp == null ? (
+                    <span className="animate-pulse text-xs text-slate-400">...</span>
+                  ) : (
+                    `${currentTemp != null ? currentTemp : '--'}°`
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <b className="block text-base font-bold text-ink leading-tight">
+                    {nasaLoading && !nasaClima ? 'Consultando satélites…' : currentClima}
+                  </b>
+                  <span className="text-xs text-slate-500 font-medium">
+                    {currentElevation ? `${currentElevation} msnm · ` : ''}NASA POWER Climatology (T2M)
+                  </span>
+                </div>
               </div>
-              <div>
-                <b className="block text-base font-bold text-ink">{place.clima}</b>
-                <span className="text-xs text-slate-500 font-medium">Referencia climática para la coordenada</span>
+
+              {/* Sub-métricas satelitales en vivo */}
+              <div className="mt-3.5 grid grid-cols-2 gap-2 border-t border-slate-200/60 pt-3 text-xs">
+                <div className="rounded-xl bg-white/80 p-2.5 backdrop-blur">
+                  <div className="flex items-center gap-1.5 font-bold text-slate-500">
+                    <Icon n="rain" s={14} cls="text-primary" />
+                    <span>Lluvia mensual</span>
+                  </div>
+                  <div className="mt-1 font-display text-sm font-extrabold text-slate-900">
+                    {currentRain != null ? `${currentRain} mm` : '—'}
+                  </div>
+                </div>
+
+                <div className="rounded-xl bg-white/80 p-2.5 backdrop-blur">
+                  <div className="flex items-center gap-1.5 font-bold text-slate-500">
+                    <Icon n="drop" s={14} cls="text-sky" />
+                    <span>Humedad SMAP</span>
+                  </div>
+                  <div className="mt-1 font-display text-sm font-extrabold text-slate-900">
+                    {currentSmap != null ? `${currentSmap} %` : '—'}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-2.5 flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                <span>🛰️ Fuente: NASA POWER & SMAP</span>
+                <span>Coord: {parseFloat(latS) ? parseFloat(latS).toFixed(2) : '--'}, {parseFloat(lngS) ? parseFloat(lngS).toFixed(2) : '--'}</span>
               </div>
             </div>
           </div>
@@ -405,7 +506,7 @@ export function ParcelForm({ initial, onSave, onCancel }) {
               <MapView
                 lat={parseFloat(latS) || center.lat}
                 lng={parseFloat(lngS) || center.lng}
-                seed={place.lat * 10 | 0}
+                seed={(parseFloat(latS) || 19) * 10 | 0}
                 satellite={sat}
                 poly={null}
                 onPick={pick}
