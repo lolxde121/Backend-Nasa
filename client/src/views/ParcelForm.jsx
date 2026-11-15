@@ -253,7 +253,7 @@ export function ParcelForm({ initial, onSave, onCancel }) {
       <PageTitle
         crumbs={<>Terrenos / {edit ? `Editar ${initial.name}` : 'Crear terreno'}</>}
         title={edit ? 'Editar Terreno' : 'Crear Terreno'}
-        sub="Registra los datos de tu terreno. La IA agroclimática te sugerirá la rotación de cultivo y manejo hídrico ideal."
+        sub="Registra los datos de tu terreno. Los datos satelitales NASA y el modelo de suelo determinarán la rotación y el manejo hídrico ideal."
       />
 
       <div className="mb-6 flex gap-3 text-sm font-bold">
@@ -308,9 +308,9 @@ export function ParcelForm({ initial, onSave, onCancel }) {
                 <Icon n="sparkles" s={20} />
               </span>
               <div>
-                <b className="block text-primary font-bold text-lg">Rotación y Recomendación IA</b>
+                <b className="block text-primary font-bold text-lg">Rotación de Cultivo y Manejo Hídrico</b>
                 <p className="mt-1 text-base leading-relaxed text-slate-700 font-medium">
-                  El sistema evalúa el clima y la humedad de la NASA con tu suelo para recomendarte automáticamente la rotación ideal y el manejo hídrico óptimo.
+                  El sistema cruza el clima y la humedad satelital de la NASA con tu suelo para sugerirte la rotación ideal y el manejo hídrico óptimo.
                 </p>
               </div>
             </div>

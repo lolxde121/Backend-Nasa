@@ -39,18 +39,31 @@ export function SegDetail({ s, parcel, rec, go, onUpdate, updating, onWater }) {
         </div>
       </div>
 
-      <section className="card mb-5 grid overflow-hidden md:grid-cols-[minmax(240px,320px)_1fr]" aria-label="Recomendación de la IA">
+      <section className="card mb-5 grid overflow-hidden md:grid-cols-[minmax(260px,340px)_1fr]" aria-label="Recomendación agronómica de riego">
         <div className={`relative flex flex-col justify-center gap-4 bg-gradient-to-br ${st.hero} p-7 text-white`}>
           <div className="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
-          <span className="relative grid h-14 w-14 place-items-center rounded-full bg-white text-primary shadow-lg"><Icon n={st.icon} s={26} /></span>
-          <div className="relative flex items-center gap-1.5 text-xs font-semibold text-white/85"><Icon n="sparkles" s={13} />Recomendación de la IA</div>
+          <span className="relative grid h-16 w-16 place-items-center rounded-2xl bg-white text-primary shadow-lg"><Icon n={st.icon} s={28} /></span>
+          <div className="relative flex items-center gap-1.5 text-sm font-bold text-white/90"><Icon n="sprout" s={16} />Recomendación agronómica de riego</div>
           <h2 className="relative font-display text-2xl font-bold leading-tight md:text-3xl" style={{ textWrap: 'balance' }}>{rec.title}</h2>
-          <span className="relative inline-flex w-fit items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-bold backdrop-blur"><span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />Confianza {rec.conf}</span>
+          <span className="relative inline-flex w-fit items-center gap-1.5 rounded-full bg-white/20 px-3.5 py-1 text-xs md:text-sm font-bold backdrop-blur"><span className="h-2 w-2 rounded-full bg-emerald-300" />Certeza técnica: {rec.conf}</span>
         </div>
-        <div className="flex flex-col gap-4 p-6">
-          <div><div className="mb-1.5 text-xs font-bold text-slate-500">¿Por qué?</div><p className="text-sm leading-relaxed text-slate-700">{rec.why}</p></div>
-          <div className="grid gap-3 sm:grid-cols-3">{kp.map(([l, v]) => <div key={l} className="rounded-xl bg-gradient-to-br from-sky/10 to-mint/5 p-3.5"><div className="text-[11px] font-semibold text-slate-500">{l}</div><div className="mt-1 text-sm font-bold" style={{ fontVariantNumeric: 'tabular-nums' }}>{v}</div></div>)}</div>
-          <p className="flex items-center gap-2 text-[11px] text-slate-400"><Icon n="sparkles" s={12} />Generado por IA con el pronóstico de lluvia y los datos de tu cultivo. Es una guía; no sustituye tu criterio.</p>
+        <div className="flex flex-col justify-between gap-4 p-6">
+          <div>
+            <div className="mb-1.5 text-sm font-bold text-slate-700">Fundamento agronómico:</div>
+            <p className="text-base leading-relaxed text-slate-800 font-medium">{rec.why}</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {kp.map(([l, v]) => (
+              <div key={l} className="rounded-xl bg-gradient-to-br from-sky/10 to-mint/5 p-4 border border-sky/15">
+                <div className="text-xs font-bold text-slate-500">{l}</div>
+                <div className="mt-1 text-base font-black text-slate-900" style={{ fontVariantNumeric: 'tabular-nums' }}>{v}</div>
+              </div>
+            ))}
+          </div>
+          <p className="flex items-center gap-2 text-xs md:text-sm text-slate-500 font-medium pt-1 border-t border-slate-100">
+            <Icon n="globe" s={15} cls="text-primary shrink-0" />
+            Calculado con balance hídrico FAO-56, humedad SMAP y pronóstico satelital de lluvia. Es una guía de apoyo agronómico.
+          </p>
         </div>
       </section>
 

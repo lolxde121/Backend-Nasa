@@ -25,7 +25,7 @@ export function Dashboard({ parcels = [], go, alerts = [], segs = [] }) {
     },
     {
       id: 'seg',
-      title: 'Control de Riego con IA',
+      title: 'Control de Riego Satelital',
       category: 'Semáforo de Riego FAO-56',
       desc: 'Decide cuándo regar hoy, esperar lluvia satelital o pausar el riego para ahorrar agua y costos.',
       metric: riego.length > 0 ? `${riego.length} requieren riego prioritario` : 'Humedad óptima en todas las parcelas',
@@ -37,13 +37,13 @@ export function Dashboard({ parcels = [], go, alerts = [], segs = [] }) {
     },
     {
       id: 'recs',
-      title: 'Qué Sembrar (Recomendador con IA)',
-      category: 'Inteligencia Agroclimática',
+      title: 'Qué Sembrar (Catálogo Agroclimático)',
+      category: 'Evaluación Agroclimática',
       desc: 'Descubre los cultivos más compatibles cruzando tu suelo con el clima y lluvia de la NASA.',
       metric: '8+ cultivos evaluados para tu zona',
       icon: 'sparkles',
       gradient: 'from-[#0F766E] to-[#2BB3A3]',
-      badge: 'Recomendación IA',
+      badge: 'Modelo Satelital',
       badgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-200',
       actionLabel: 'Ver cultivos sugeridos'
     },

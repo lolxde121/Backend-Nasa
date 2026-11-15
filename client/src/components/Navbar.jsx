@@ -28,7 +28,7 @@ export default function Navbar({
                 </span>
               </div>
               <p className="text-xs text-emerald-300/80 hidden sm:block">
-                Asistencia agrícola con telemetría satelital NASA & IA
+                Telemetría satelital NASA POWER, SMAP y MODIS
               </p>
             </div>
           </div>

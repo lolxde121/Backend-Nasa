@@ -229,7 +229,7 @@ export default function App() {
       return { ...segItem, hist, lastWater: date, upd: nowLabel() };
     }));
 
-    notify('Riego registrado. Recomendación de IA recalculada.');
+    notify('Riego registrado. Balance hídrico FAO-56 recalculado.');
   };
 
   const activeNav = ['form', 'detail'].includes(view.name)

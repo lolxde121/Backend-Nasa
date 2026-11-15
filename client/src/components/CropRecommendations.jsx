@@ -9,7 +9,6 @@ import {
   Droplets,
   ChevronDown,
   ChevronUp,
-  Sparkles,
   HelpCircle,
   ShieldCheck
 } from 'lucide-react';
@@ -21,7 +20,7 @@ export default function CropRecommendations({ recommendationsData, loading }) {
     return (
       <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm flex flex-col items-center justify-center min-h-[300px]">
         <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-slate-700 font-medium text-sm">Analizando compatibilidad edafoclimática con IA...</p>
+        <p className="text-slate-700 font-medium text-sm">Evaluando compatibilidad edafoclimática con datos satelitales NASA...</p>
         <p className="text-slate-400 text-xs mt-1">Cruzando datos NASA con catálogo agronómico de cultivos</p>
       </div>
     );
@@ -54,9 +53,9 @@ export default function CropRecommendations({ recommendationsData, loading }) {
       {/* Agroclimatic Context Summary */}
       <div className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-5">
         <div className="flex items-center space-x-2 mb-3">
-          <Sparkles className="w-5 h-5 text-emerald-600" />
+          <Sprout className="w-5 h-5 text-emerald-600" />
           <h3 className="font-bold text-slate-900 text-sm">
-            Condiciones del Terreno evaluadas por el Asistente IA
+            Condiciones del Terreno — Telemetría Satelital NASA
           </h3>
         </div>
 
