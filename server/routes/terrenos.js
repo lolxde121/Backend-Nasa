@@ -83,13 +83,17 @@ router.post('/', async (req, res) => {
       poligono = null
     } = req.body;
 
-    if (!nombre || !propietario || latitud === undefined || longitud === undefined || !area_hectareas) {
+    const finalArea = (area_hectareas && parseFloat(area_hectareas) > 0) ? parseFloat(area_hectareas) : 5.0;
+    const finalCultivo = cultivo_actual && cultivo_actual !== 'Sin cultivo' ? cultivo_actual : 'Por definir (Ver recomendaciones)';
+
+    if (!nombre || latitud === undefined || longitud === undefined) {
       return res.status(400).json({
         success: false,
-        error: 'Los campos nombre, propietario, latitud, longitud y área en hectáreas son obligatorios.'
+        error: 'Los campos nombre, latitud y longitud son obligatorios.'
       });
     }
 
+    const finalPropietario = propietario || 'Agricultor';
     const poligonoJson = poligono ? JSON.stringify(poligono) : null;
 
     const stmt = db.prepare(`
@@ -101,16 +105,16 @@ router.post('/', async (req, res) => {
 
     const result = stmt.run(
       nombre,
-      propietario,
+      finalPropietario,
       descripcion,
       ubicacion,
       parseFloat(latitud),
       parseFloat(longitud),
-      parseFloat(area_hectareas),
+      finalArea,
       tipo_suelo,
       clima_zona,
       fuente_agua,
-      cultivo_actual,
+      finalCultivo,
       estado,
       poligonoJson
     );
